@@ -123,3 +123,286 @@
 
   revealables.forEach(function (el) { io.observe(el); });
 })();
+
+/* ============================================================
+   Living Terrain — commerce (cart), product carousels,
+   class/retreat sign-up, and demo checkout.
+   Cart lives in localStorage; checkout is a skippable demo paywall.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  var CART_KEY = "lt-cart";
+  var CONTACT_ENDPOINT = "/api/contact";
+
+  /* ---------- helpers ---------- */
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+  function setText(sel, txt, root) {
+    var el = (root || document).querySelector(sel);
+    if (el) el.textContent = txt;
+  }
+  function emailOk(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+  function readCart() {
+    try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; }
+    catch (e) { return []; }
+  }
+  function writeCart(items) {
+    try { localStorage.setItem(CART_KEY, JSON.stringify(items)); } catch (e) {}
+    updateCartBadges();
+  }
+  function cartCount(items) {
+    items = items || readCart();
+    return items.reduce(function (n, it) { return n + it.qty; }, 0);
+  }
+  function cartTotal(items) {
+    items = items || readCart();
+    return items.reduce(function (s, it) { return s + it.qty * it.price; }, 0);
+  }
+  function addToCart(item) {
+    var items = readCart(), found = null;
+    for (var i = 0; i < items.length; i++) if (items[i].id === item.id) { found = items[i]; break; }
+    if (found) found.qty += 1;
+    else items.push({ id: item.id, name: item.name, price: item.price, img: item.img, qty: 1 });
+    writeCart(items);
+  }
+  function updateCartBadges() {
+    var c = cartCount();
+    document.querySelectorAll("[data-cart-count]").forEach(function (el) {
+      el.textContent = c;
+      if (c > 0) el.classList.add("has-items"); else el.classList.remove("has-items");
+    });
+  }
+  // Best-effort notification email (falls through silently on the static preview).
+  function sendContact(subject, name, email, message) {
+    try {
+      fetch(CONTACT_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name, email: email, message: message, subject: subject })
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  updateCartBadges();
+
+  /* ---------- Add to cart / Buy now (products page) ---------- */
+  function itemFrom(btn) {
+    return {
+      id: btn.getAttribute("data-id"),
+      name: btn.getAttribute("data-name"),
+      price: parseFloat(btn.getAttribute("data-price")),
+      img: btn.getAttribute("data-img")
+    };
+  }
+  document.querySelectorAll("[data-add-to-cart]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      addToCart(itemFrom(btn));
+      var orig = btn.textContent;
+      btn.textContent = "Added ✓"; btn.disabled = true;
+      setTimeout(function () { btn.textContent = orig; btn.disabled = false; }, 1200);
+    });
+  });
+  document.querySelectorAll("[data-buy-now]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      addToCart(itemFrom(btn));
+      window.location.href = "cart.html";
+    });
+  });
+
+  /* ---------- Product image carousels (Amazon-style) ---------- */
+  document.querySelectorAll("[data-carousel]").forEach(function (root) {
+    var track = root.querySelector(".carousel-track");
+    var imgs = Array.prototype.slice.call(root.querySelectorAll(".carousel-track img"));
+    if (!track || !imgs.length) return;
+    var thumbsWrap = root.querySelector(".thumbs");
+    var idx = 0;
+
+    function go(n) {
+      idx = (n + imgs.length) % imgs.length;
+      track.style.transform = "translateX(" + (-idx * 100) + "%)";
+      if (thumbsWrap) {
+        thumbsWrap.querySelectorAll("button").forEach(function (b, i) {
+          b.setAttribute("aria-current", i === idx ? "true" : "false");
+        });
+      }
+    }
+    var prev = root.querySelector(".cbtn.prev");
+    var next = root.querySelector(".cbtn.next");
+    if (prev) prev.addEventListener("click", function () { go(idx - 1); });
+    if (next) next.addEventListener("click", function () { go(idx + 1); });
+    if (imgs.length < 2) {
+      if (prev) prev.style.display = "none";
+      if (next) next.style.display = "none";
+    }
+    if (thumbsWrap) {
+      imgs.forEach(function (img, i) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.setAttribute("aria-label", "View image " + (i + 1));
+        var t = document.createElement("img");
+        t.src = img.getAttribute("src"); t.alt = "";
+        b.appendChild(t);
+        b.addEventListener("click", function () { go(i); });
+        thumbsWrap.appendChild(b);
+      });
+    }
+    go(0);
+  });
+
+  /* ---------- Sign-up page (classes / retreats) ---------- */
+  var signup = document.querySelector("[data-signup]");
+  if (signup) {
+    var params = new URLSearchParams(window.location.search);
+    var type = params.get("type") || "class";
+    var item = params.get("item") || "Living Terrain";
+    var price = params.get("price");
+    var when = params.get("when");
+    var isRetreat = type === "retreat";
+
+    // Note: the eyebrow and <h1> live in the page-hero, outside [data-signup],
+    // so these resolve against the whole document, not the signup container.
+    setText("[data-su-eyebrow]", isRetreat ? "Retreat sign-up" : "Class sign-up");
+    setText("[data-su-item]", item);
+    setText("[data-su-label]", isRetreat ? "Retreat" : "Class", signup);
+    setText("[data-su-name]", item, signup);
+    var whenRow = signup.querySelector("[data-su-when-row]");
+    if (when) setText("[data-su-when]", when, signup);
+    else if (whenRow) whenRow.hidden = true;
+    setText("[data-su-price]", price ? "$" + price : "Free", signup);
+
+    var suForm = signup.querySelector("#signup-form");
+    var suView = signup.querySelector("[data-signup-view]");
+    var suConfirm = signup.querySelector("[data-confirm]");
+
+    var completeSignup = function (skipped) {
+      var name = (suForm.querySelector('[name="name"]').value || "").trim();
+      var email = (suForm.querySelector('[name="email"]').value || "").trim();
+      if (!name || !email || !emailOk(email)) { suForm.reportValidity(); return; }
+      var phone = (suForm.querySelector('[name="phone"]').value || "").trim();
+      var subject = (isRetreat ? "Retreat sign-up" : "Class sign-up") + ": " + item;
+      var message = "Sign-up for: " + item + (when ? " (" + when + ")" : "") +
+        (price ? " — $" + price : "") +
+        "\nPhone: " + (phone || "—") +
+        "\nPayment: " + (skipped ? "skipped (pay later)" : "demo — collected on site");
+      sendContact(subject, name, email, message);
+      setText("[data-confirm-msg]",
+        "Thank you, " + name + " — you're signed up for " + item +
+        ". A confirmation email is on its way to " + email + ".", suConfirm);
+      suView.hidden = true;
+      suConfirm.hidden = false;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+    suForm.addEventListener("submit", function (e) { e.preventDefault(); completeSignup(false); });
+    var suSkip = signup.querySelector("[data-skip-pay]");
+    if (suSkip) suSkip.addEventListener("click", function () { completeSignup(true); });
+  }
+
+  /* ---------- Cart + checkout page ---------- */
+  var cartView = document.querySelector("[data-cart-view]");
+  var checkoutView = document.querySelector("[data-checkout-view]");
+  if (cartView && checkoutView) {
+    var itemsWrap = document.querySelector("[data-cart-items]");
+    var emptyMsg = document.querySelector("[data-cart-empty]");
+    var totalRow = document.querySelector("[data-cart-total-row]");
+    var totalEl = document.querySelector("[data-cart-total]");
+    var actions = document.querySelector("[data-cart-actions]");
+    var coConfirm = document.querySelector("[data-confirm]");
+    var coForm = document.querySelector("#checkout-form");
+    var coLines = document.querySelector("[data-checkout-lines]");
+    var coTotal = document.querySelector("[data-checkout-total]");
+
+    var renderCart = function () {
+      var items = readCart();
+      itemsWrap.innerHTML = "";
+      if (!items.length) {
+        emptyMsg.hidden = false; totalRow.hidden = true; actions.hidden = true; return;
+      }
+      emptyMsg.hidden = true; totalRow.hidden = false; actions.hidden = false;
+      items.forEach(function (it) {
+        var row = document.createElement("div");
+        row.className = "cart-item";
+        row.innerHTML =
+          '<div class="ci-thumb"><img src="' + esc(it.img) + '" alt=""></div>' +
+          '<div><h3>' + esc(it.name) + '</h3>' +
+          '<p class="ci-sub">Botanical extract · 2 fl oz</p>' +
+          '<div class="cart-qty"><button type="button" data-dec aria-label="Decrease quantity">−</button>' +
+          '<span>' + it.qty + '</span>' +
+          '<button type="button" data-inc aria-label="Increase quantity">+</button></div></div>' +
+          '<div><div class="ci-price">$' + (it.qty * it.price) + '</div>' +
+          '<button type="button" class="ci-remove" data-remove>Remove</button></div>';
+        row.querySelector("[data-inc]").addEventListener("click", function () { changeQty(it.id, 1); });
+        row.querySelector("[data-dec]").addEventListener("click", function () { changeQty(it.id, -1); });
+        row.querySelector("[data-remove]").addEventListener("click", function () { removeItem(it.id); });
+        itemsWrap.appendChild(row);
+      });
+      totalEl.textContent = "$" + cartTotal(items);
+    };
+    var changeQty = function (id, delta) {
+      var items = readCart();
+      for (var i = 0; i < items.length; i++) if (items[i].id === id) {
+        items[i].qty += delta;
+        if (items[i].qty < 1) items.splice(i, 1);
+        break;
+      }
+      writeCart(items); renderCart();
+    };
+    var removeItem = function (id) {
+      writeCart(readCart().filter(function (it) { return it.id !== id; }));
+      renderCart();
+    };
+    renderCart();
+
+    var renderSummary = function () {
+      var items = readCart();
+      coLines.innerHTML = "";
+      items.forEach(function (it) {
+        var r = document.createElement("div");
+        r.className = "os-row";
+        r.innerHTML = "<span>" + esc(it.name) + " × " + it.qty + "</span><span>$" + (it.qty * it.price) + "</span>";
+        coLines.appendChild(r);
+      });
+      coTotal.textContent = "$" + cartTotal(items);
+    };
+
+    var gotoCheckout = document.querySelector("[data-goto-checkout]");
+    if (gotoCheckout) gotoCheckout.addEventListener("click", function () {
+      if (!readCart().length) return;
+      renderSummary();
+      cartView.hidden = true; checkoutView.hidden = false;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    var backToCart = document.querySelector("[data-back-to-cart]");
+    if (backToCart) backToCart.addEventListener("click", function () {
+      checkoutView.hidden = true; cartView.hidden = false; renderCart();
+    });
+
+    var placeOrder = function (skipped) {
+      var name = (coForm.querySelector('[name="name"]').value || "").trim();
+      var email = (coForm.querySelector('[name="email"]').value || "").trim();
+      if (!name || !email || !emailOk(email)) { coForm.reportValidity(); return; }
+      var items = readCart();
+      var summary = items.map(function (it) {
+        return it.name + " × " + it.qty + " ($" + (it.qty * it.price) + ")";
+      }).join("\n");
+      var msg = "Order:\n" + summary + "\nTotal: $" + cartTotal(items) +
+        "\nAddress: " + (coForm.querySelector('[name="address"]').value || "—") +
+        "\nPayment: " + (skipped ? "skipped (pay later)" : "demo — collected on site");
+      sendContact("Extract order", name, email, msg);
+      setText("[data-confirm-msg]",
+        "Thank you, " + name + " — your order is confirmed and a receipt is on its way to " + email + ".",
+        coConfirm);
+      writeCart([]);
+      cartView.hidden = true; checkoutView.hidden = true;
+      coConfirm.hidden = false;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+    coForm.addEventListener("submit", function (e) { e.preventDefault(); placeOrder(false); });
+    var coSkip = checkoutView.querySelector("[data-skip-pay]");
+    if (coSkip) coSkip.addEventListener("click", function () { placeOrder(true); });
+  }
+})();

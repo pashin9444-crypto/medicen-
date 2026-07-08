@@ -28,7 +28,9 @@
         <a href="classes.html">Classes</a>
         <a href="retreats.html">Retreats</a>
         <a href="products.html">Extracts</a>
+        <a href="resources.html">Resources</a>
         <a href="about.html">About</a>
+        <a class="cart-link" href="cart.html" aria-label="View cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.2 12.2a1.5 1.5 0 0 0 1.5 1.3h8.7a1.5 1.5 0 0 0 1.5-1.2L22 7H6"/></svg><span class="cart-count" data-cart-count>0</span></a>
       </nav>
     </div>
   </header>
@@ -39,12 +41,12 @@
       <div class="hero-bg">
         <img src="assets/hero-meadow.jpg" alt="A coastal meadow of wild grasses glowing in first light" fetchpriority="high">
       </div>
-      <div class="container hero-inner">
+      <div class="container hero-inner center-hero">
         <p class="tagline">Rooted in nature · Backed by science · Made by a PA</p>
         <h1>Botanical extracts, crafted with clinical care.</h1>
         <p class="hero-sub">A line of medicinal mushroom &amp; herbal extracts, formulated by a Physician Assistant — plus classes to help you use nature wisely.</p>
         <div class="cta-row">
-          <a class="btn btn-primary" href="classes.html">See the Classes</a>
+          <a class="btn btn-primary" href="classes.html">Explore the Classes</a>
           <a class="btn btn-ghost" href="products.html">Explore the Extracts</a>
         </div>
       </div>
@@ -52,7 +54,38 @@
 
     <!-- ============ CREED BAND ============ -->
     <section class="creed">
-      <p>Six steps.<span class="dot">·</span>Six months.<span class="dot">·</span>Maximum extraction.<span class="dot">·</span>Maximum goodness.</p>
+      <p>Six steps.<span class="dot">·</span>Six months.<span class="dot">·</span>Maximum extraction.</p>
+    </section>
+
+    <!-- ============ CREED EXPLAINER — what the creed means ============ -->
+    <section class="section creed-explain">
+      <div class="container">
+        <div class="center reveal" style="margin-bottom:2.25rem">
+          <p class="eyebrow">What that means</p>
+          <h2>Why our extracts take time</h2>
+          <p class="lede">Three simple promises shape every bottle — here's what each one really means for what you're taking.</p>
+        </div>
+        <div class="grid grid-3">
+          <div class="explain-card reveal">
+            <span class="step-num">Six steps</span>
+            <h3>A deliberate process</h3>
+            <p>Each blend moves through a careful, multi-stage extraction — nothing rushed and nothing skipped — so both the water- and alcohol-soluble compounds are drawn out in full.</p>
+          </div>
+          <div class="explain-card reveal">
+            <span class="step-num">Six months</span>
+            <h3>Patience, not shortcuts</h3>
+            <p>Slow, low-and-steady extraction over months lets fresh mushrooms and botanicals fully release their beta-glucans, polyphenols, and adaptogens — the good stuff cheap tinctures leave behind.</p>
+          </div>
+          <div class="explain-card reveal">
+            <span class="step-num">Max extraction</span>
+            <h3>Full-spectrum by design</h3>
+            <p>The result is a whole, full-spectrum extract made in small batches with nothing artificial added — so you actually get what the label promises.</p>
+          </div>
+        </div>
+        <div class="center" style="margin-top:2.25rem">
+          <a class="btn btn-outline" href="products.html#how">See how they're made</a>
+        </div>
+      </div>
     </section>
 
     <!-- ============ BRAND CREED / INTRO ============ -->
@@ -65,30 +98,39 @@
     </section>
 
     <!-- ============ BRAND PHILOSOPHY BAND ============ -->
-    <section class="section bg-forest philosophy">
+    <section class="section bg-forest philosophy nature-pillars">
       <div class="container">
         <div class="center reveal">
           <p class="eyebrow">The Living Terrain philosophy</p>
           <p class="statement">Your body is a <span class="hl">living terrain</span> — an ecosystem you tend for long-term vitality, preventing the imbalances that lead to illness.</p>
         </div>
         <div class="grid grid-3">
-          <article class="pillar reveal">
-            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h5v16H6a2 2 0 0 0-2 2V5z"/><path d="M20 5a2 2 0 0 0-2-2h-5v16h5a2 2 0 0 1 2 2V5z"/></svg>
-            <h3>Classes</h3>
-            <p>Knowledge that empowers your self-care — so you understand what you take and why.</p>
-            <a class="card-link" href="classes.html" style="margin-top:0.8rem;display:inline-block">Browse classes →</a>
+          <article class="feature-card reveal" style="--accent:var(--acc-daily)">
+            <div class="fc-top"></div>
+            <div class="fc-body">
+              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h5v16H6a2 2 0 0 0-2 2V5z"/><path d="M20 5a2 2 0 0 0-2-2h-5v16h5a2 2 0 0 1 2 2V5z"/></svg>
+              <h3>Classes</h3>
+              <p>Knowledge that empowers your self-care — so you understand what you take and why.</p>
+              <a class="card-link" href="classes.html">Explore the classes →</a>
+            </div>
           </article>
-          <article class="pillar reveal">
-            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 20l6-11 4 7 3-5 5 9z"/><circle cx="17" cy="6" r="2"/></svg>
-            <h3>Retreats</h3>
-            <p>Step away from daily demands and build the habits that carry vitality forward.</p>
-            <a class="card-link" href="retreats.html" style="margin-top:0.8rem;display:inline-block">Explore retreats →</a>
+          <article class="feature-card reveal" style="--accent:var(--bronze)">
+            <div class="fc-top"></div>
+            <div class="fc-body">
+              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 20l6-11 4 7 3-5 5 9z"/><circle cx="17" cy="6" r="2"/></svg>
+              <h3>Retreats</h3>
+              <p>Step away from daily demands and build the habits that carry vitality forward.</p>
+              <a class="card-link" href="retreats.html">Explore the retreats →</a>
+            </div>
           </article>
-          <article class="pillar reveal">
-            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M9 3h6M12 3v6M7 21a5 5 0 0 1-2-8l5-4 5 4a5 5 0 0 1-2 8z"/></svg>
-            <h3>Extracts</h3>
-            <p>A six-step, six-month extraction with synergistic ingredients for absorption — gentle immune modulators safe for daily use.<span class="dagger" style="color:var(--bronze-deep)">†</span></p>
-            <a class="card-link" href="products.html" style="margin-top:0.8rem;display:inline-block">See the extracts →</a>
+          <article class="feature-card reveal" style="--accent:var(--acc-headache)">
+            <div class="fc-top"></div>
+            <div class="fc-body">
+              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M9 3h6M12 3v6M7 21a5 5 0 0 1-2-8l5-4 5 4a5 5 0 0 1-2 8z"/></svg>
+              <h3>Extracts</h3>
+              <p>A six-step, six-month extraction with synergistic ingredients for absorption — gentle immune modulators safe for daily use.<span class="dagger" style="color:var(--bronze-deep)">†</span></p>
+              <a class="card-link" href="products.html">Explore the extracts →</a>
+            </div>
           </article>
         </div>
       </div>
@@ -126,7 +168,7 @@
           <article class="pillar reveal">
             <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 8a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-8V3"/><line x1="8" y1="15" x2="16" y2="15"/></svg>
             <h3>Fully extracted</h3>
-            <p>A deliberate six-step, six-month process draws out beta-glucans, polyphenols, and adaptogenic compounds — maximum extraction, maximum goodness.</p>
+            <p>A deliberate six-step, six-month process draws out beta-glucans, polyphenols, and adaptogenic compounds — for maximum extraction and a true full-spectrum result.</p>
           </article>
           <article class="pillar reveal">
             <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 21c-4-2-7-6-7-11a7 7 0 0 1 14 0c0 5-3 9-7 11z"/><path d="M12 10c1.5 0 3-1 3-3M12 14c-1.5 0-3-1-3-3"/></svg>
@@ -174,7 +216,7 @@
           <div class="prod-card reveal" style="--accent:var(--bronze)">
             <span class="band"></span>
             <div class="thumb"><img src="assets/prod-box.jpg" alt="Living Terrain packaged box featuring the rooted-tree emblem and mountains" loading="lazy"></div>
-            <div class="body"><p class="eyebrow">The process</p><h3>How they're made</h3><p class="sub">Six steps, six months, from spore to bottle.</p><a class="card-link" href="products.html#how">See the craft →</a></div>
+            <div class="body"><p class="eyebrow">The process</p><h3>How they're made</h3><p class="sub">Six steps, six months, from spore to bottle.</p><a class="card-link" href="products.html#how">Explore the craft →</a></div>
           </div>
         </div>
         <div class="center" style="margin-top:2.5rem">
@@ -224,6 +266,7 @@
             <li><a href="classes.html">Classes</a></li>
             <li><a href="retreats.html">Retreats</a></li>
             <li><a href="products.html">Extracts</a></li>
+            <li><a href="resources.html">Resources</a></li>
             <li><a href="about.html">About</a></li>
           </ul>
         </div>

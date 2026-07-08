@@ -27,7 +27,9 @@
         <a href="classes.html">Classes</a>
         <a href="retreats.html">Retreats</a>
         <a href="products.html" aria-current="page">Extracts</a>
+        <a href="resources.html">Resources</a>
         <a href="about.html">About</a>
+        <a class="cart-link" href="cart.html" aria-label="View cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.2 12.2a1.5 1.5 0 0 0 1.5 1.3h8.7a1.5 1.5 0 0 0 1.5-1.2L22 7H6"/></svg><span class="cart-count" data-cart-count>0</span></a>
       </nav>
     </div>
   </header>
@@ -41,16 +43,16 @@
       </div>
     </section>
 
-    <!-- Quick jump nav -->
+    <!-- Quick jump menu -->
     <nav class="section-tight" aria-label="Jump to a blend">
-      <div class="container center">
-        <ul class="values">
-          <li><a href="#daily-longevity" style="text-decoration:none;color:inherit">Daily Longevity</a></li>
-          <li><a href="#brain-power" style="text-decoration:none;color:inherit">Brain Power</a></li>
-          <li><a href="#night-calm" style="text-decoration:none;color:inherit">Night Calm</a></li>
-          <li><a href="#acute-stress" style="text-decoration:none;color:inherit">Acute Stress</a></li>
-          <li><a href="#headache-relief" style="text-decoration:none;color:inherit">Headache Relief</a></li>
-          <li><a href="#how" style="text-decoration:none;color:inherit">How they're made</a></li>
+      <div class="container">
+        <ul class="blend-menu">
+          <li style="--c:var(--acc-daily)"><a href="#daily-longevity"><span class="m-eyebrow">Everyday Resilience</span><span class="m-name">Daily Longevity</span></a></li>
+          <li style="--c:var(--acc-brain)"><a href="#brain-power"><span class="m-eyebrow">Neurocognitive</span><span class="m-name">Brain Power</span></a></li>
+          <li style="--c:var(--acc-night)"><a href="#night-calm"><span class="m-eyebrow">Rest &amp; Restoration</span><span class="m-name">Night Calm</span></a></li>
+          <li style="--c:var(--acc-acute)"><a href="#acute-stress"><span class="m-eyebrow">Rapid Adaptation</span><span class="m-name">Acute Stress</span></a></li>
+          <li style="--c:var(--acc-headache)"><a href="#headache-relief"><span class="m-eyebrow">Neurologic Balance</span><span class="m-name">Headache Relief</span></a></li>
+          <li style="--c:var(--bronze)"><a href="#how"><span class="m-eyebrow">The process</span><span class="m-name">How they're made</span></a></li>
         </ul>
       </div>
     </nav>
@@ -81,22 +83,22 @@
             <p class="disclaimer"><span class="dagger">†</span> These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.</p>
           </div>
           <div>
-            <div class="prod-photo"><img src="assets/prod-daily-longevity.jpg" alt="Daily Longevity extract with a green label" loading="lazy"></div>
-            <div class="sf-block" style="margin-top:1.25rem">
-              <h4>Supplement Facts <span class="flag">Draft — verify</span></h4>
-              <div class="sfacts">
-                <p class="sf-title">Supplement Facts</p>
-                <p class="sf-serving">Serving Size <strong>1 mL</strong></p>
-                <div class="sf-rule-mid"></div>
-                <p class="sf-serving">Servings Per Container <strong>60</strong></p>
-                <div class="sf-head"><span>Amount Per Serving</span><span>% DV</span></div>
-                <div class="sf-row"><span class="sf-ingredient">Proprietary Blend</span><span class="amt">1 mL&nbsp;&nbsp;†</span></div>
-                <div class="sf-row"><span>Dried Reishi Extract</span><span class="amt">*</span></div>
-                <div class="sf-row"><span>Fresh Turkey Tail Extract</span><span class="amt">*</span></div>
-                <div class="sf-rule-mid"></div>
-                <p class="sf-note">† Daily Value (DV) not established. <br>* Amount per proprietary blend.</p>
-                <p class="sf-other"><strong>Other Ingredients:</strong> Homegrown Reishi, Turkey Tail, Elderberry, Lemon Balm, Pomegranate, Rose Hip, Mimosa, Chamomile, Sassafras, Organic Alcohol, Vegetable Glycerine.</p>
+            <div class="carousel reveal" data-carousel>
+              <div class="carousel-viewport">
+                <div class="carousel-track">
+                  <img src="assets/prod-daily-longevity.jpg" alt="Daily Longevity extract, front label" loading="lazy">
+                  <img src="assets/prod-dropper.jpg" alt="Living Terrain dropper bottle" loading="lazy">
+                  <img src="assets/prod-box.jpg" alt="Living Terrain packaged box with the rooted-tree emblem" loading="lazy">
+                </div>
+                <button class="cbtn prev" type="button" aria-label="Previous image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+                <button class="cbtn next" type="button" aria-label="Next image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
               </div>
+              <div class="thumbs"></div>
+            </div>
+            <div class="buy-row" style="--accent:var(--acc-daily)">
+              <span class="price">$36 <span class="unit">/ 2 fl oz</span></span>
+              <button class="btn btn-cart" type="button" data-add-to-cart data-id="daily-longevity" data-name="Daily Longevity" data-price="36" data-img="assets/prod-daily-longevity.jpg">Add to cart</button>
+              <button class="btn btn-outline" type="button" data-buy-now data-id="daily-longevity" data-name="Daily Longevity" data-price="36" data-img="assets/prod-daily-longevity.jpg">Buy now</button>
             </div>
           </div>
         </div>
@@ -126,12 +128,22 @@
             <p class="disclaimer"><span class="dagger">†</span> These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.</p>
           </div>
           <div>
-            <div class="prod-photo"><img src="assets/prod-brain-power.jpg" alt="Brain Power extract with a plum label" loading="lazy"></div>
-            <div class="sf-block" style="margin-top:1.25rem">
-              <h4>Supplement Facts</h4>
-              <div class="sfacts coming-soon">
-                <p>Supplement Facts panel coming soon.<br><span style="font-size:0.9em;color:var(--ink-soft)">The verified panel for Brain Power (including Lion's Mane &amp; Ashwagandha) will be published once confirmed.</span></p>
+            <div class="carousel reveal" data-carousel>
+              <div class="carousel-viewport">
+                <div class="carousel-track">
+                  <img src="assets/prod-brain-power.jpg" alt="Brain Power extract, front label" loading="lazy">
+                  <img src="assets/prod-dropper.jpg" alt="Living Terrain dropper bottle" loading="lazy">
+                  <img src="assets/prod-box.jpg" alt="Living Terrain packaged box with the rooted-tree emblem" loading="lazy">
+                </div>
+                <button class="cbtn prev" type="button" aria-label="Previous image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+                <button class="cbtn next" type="button" aria-label="Next image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
               </div>
+              <div class="thumbs"></div>
+            </div>
+            <div class="buy-row" style="--accent:var(--acc-brain)">
+              <span class="price">$36 <span class="unit">/ 2 fl oz</span></span>
+              <button class="btn btn-cart" type="button" data-add-to-cart data-id="brain-power" data-name="Brain Power" data-price="36" data-img="assets/prod-brain-power.jpg">Add to cart</button>
+              <button class="btn btn-outline" type="button" data-buy-now data-id="brain-power" data-name="Brain Power" data-price="36" data-img="assets/prod-brain-power.jpg">Buy now</button>
             </div>
           </div>
         </div>
@@ -161,23 +173,22 @@
             <p class="disclaimer"><span class="dagger">†</span> These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.</p>
           </div>
           <div>
-            <div class="prod-photo"><img src="assets/prod-night-calm.jpg" alt="Night Calm extract with a slate label" loading="lazy"></div>
-            <div class="sf-block" style="margin-top:1.25rem">
-              <h4>Supplement Facts <span class="flag">Draft — verify</span></h4>
-              <div class="sfacts">
-                <p class="sf-title">Supplement Facts</p>
-                <p class="sf-serving">Serving Size <strong>1 mL</strong></p>
-                <div class="sf-rule-mid"></div>
-                <p class="sf-serving">Servings Per Container <strong>60</strong></p>
-                <div class="sf-head"><span>Amount Per Serving</span><span>% DV</span></div>
-                <div class="sf-row"><span class="sf-ingredient">Proprietary Blend</span><span class="amt">1 mL&nbsp;&nbsp;†</span></div>
-                <div class="sf-row"><span>Dried Reishi Extract</span><span class="amt">*</span></div>
-                <div class="sf-row"><span>Dried Chamomile Extract</span><span class="amt">*</span></div>
-                <div class="sf-row"><span>Dried Passion Flower Extract</span><span class="amt">*</span></div>
-                <div class="sf-rule-mid"></div>
-                <p class="sf-note">† Daily Value (DV) not established. <br>* Amount per proprietary blend.</p>
-                <p class="sf-other"><strong>Other Ingredients:</strong> Homegrown Reishi, Chamomile, Passionflower, Elderberry, Pomegranate, Sassafras, Organic Alcohol, Vegetable Glycerine.</p>
+            <div class="carousel reveal" data-carousel>
+              <div class="carousel-viewport">
+                <div class="carousel-track">
+                  <img src="assets/prod-night-calm.jpg" alt="Night Calm extract, front label" loading="lazy">
+                  <img src="assets/prod-dropper.jpg" alt="Living Terrain dropper bottle" loading="lazy">
+                  <img src="assets/prod-box.jpg" alt="Living Terrain packaged box with the rooted-tree emblem" loading="lazy">
+                </div>
+                <button class="cbtn prev" type="button" aria-label="Previous image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+                <button class="cbtn next" type="button" aria-label="Next image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
               </div>
+              <div class="thumbs"></div>
+            </div>
+            <div class="buy-row" style="--accent:var(--acc-night)">
+              <span class="price">$36 <span class="unit">/ 2 fl oz</span></span>
+              <button class="btn btn-cart" type="button" data-add-to-cart data-id="night-calm" data-name="Night Calm" data-price="36" data-img="assets/prod-night-calm.jpg">Add to cart</button>
+              <button class="btn btn-outline" type="button" data-buy-now data-id="night-calm" data-name="Night Calm" data-price="36" data-img="assets/prod-night-calm.jpg">Buy now</button>
             </div>
           </div>
         </div>
@@ -207,25 +218,22 @@
             <p class="disclaimer"><span class="dagger">†</span> These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.</p>
           </div>
           <div>
-            <div class="prod-photo"><img src="assets/prod-acute-stress.jpg" alt="Acute Stress extract with a clay label" loading="lazy"></div>
-            <div class="sf-block" style="margin-top:1.25rem">
-              <h4>Supplement Facts <span class="flag">Draft — verify</span></h4>
-              <div class="sfacts">
-                <p class="sf-title">Supplement Facts</p>
-                <p class="sf-serving">Serving Size <strong>1 mL</strong></p>
-                <div class="sf-rule-mid"></div>
-                <p class="sf-serving">Servings Per Container <strong>60</strong></p>
-                <div class="sf-head"><span>Amount Per Serving</span><span>% DV</span></div>
-                <div class="sf-row"><span class="sf-ingredient">Proprietary Blend</span><span class="amt">1 mL&nbsp;&nbsp;†</span></div>
-                <div class="sf-row"><span>Dried Reishi Extract</span><span class="amt">*</span></div>
-                <div class="sf-row"><span>Fresh Oyster Mushroom Extract</span><span class="amt">*</span></div>
-                <div class="sf-row"><span>Fresh Mimosa Extract</span><span class="amt">*</span></div>
-                <div class="sf-row"><span>Milky Oat Tops Extract</span><span class="amt">*</span></div>
-                <div class="sf-row"><span>Chamomile Extract</span><span class="amt">*</span></div>
-                <div class="sf-rule-mid"></div>
-                <p class="sf-note">† Daily Value (DV) not established. <br>* Amount per proprietary blend.</p>
-                <p class="sf-other"><strong>Other Ingredients:</strong> Reishi, Oyster Mushroom, Mimosa, Chamomile, Milky Oat Tops, Organic Alcohol, Vegetable Glycerine.</p>
+            <div class="carousel reveal" data-carousel>
+              <div class="carousel-viewport">
+                <div class="carousel-track">
+                  <img src="assets/prod-acute-stress.jpg" alt="Acute Stress extract, front label" loading="lazy">
+                  <img src="assets/prod-dropper.jpg" alt="Living Terrain dropper bottle" loading="lazy">
+                  <img src="assets/prod-box.jpg" alt="Living Terrain packaged box with the rooted-tree emblem" loading="lazy">
+                </div>
+                <button class="cbtn prev" type="button" aria-label="Previous image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+                <button class="cbtn next" type="button" aria-label="Next image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
               </div>
+              <div class="thumbs"></div>
+            </div>
+            <div class="buy-row" style="--accent:var(--acc-acute)">
+              <span class="price">$36 <span class="unit">/ 2 fl oz</span></span>
+              <button class="btn btn-cart" type="button" data-add-to-cart data-id="acute-stress" data-name="Acute Stress" data-price="36" data-img="assets/prod-acute-stress.jpg">Add to cart</button>
+              <button class="btn btn-outline" type="button" data-buy-now data-id="acute-stress" data-name="Acute Stress" data-price="36" data-img="assets/prod-acute-stress.jpg">Buy now</button>
             </div>
           </div>
         </div>
@@ -255,44 +263,28 @@
             <p class="disclaimer"><span class="dagger">†</span> These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.</p>
           </div>
           <div>
-            <div class="prod-photo"><img src="assets/prod-headache-relief.jpg" alt="Headache Relief extract with a teal label" loading="lazy"></div>
-            <div class="sf-block" style="margin-top:1.25rem">
-              <h4>Supplement Facts <span class="flag">Draft — verify</span></h4>
-              <div class="sfacts">
-                <p class="sf-title">Supplement Facts</p>
-                <p class="sf-serving">Serving Size <strong>1 mL</strong></p>
-                <div class="sf-rule-mid"></div>
-                <p class="sf-serving">Servings Per Container <strong>60</strong></p>
-                <div class="sf-head"><span>Amount Per Serving</span><span>% DV</span></div>
-                <div class="sf-row"><span class="sf-ingredient">Proprietary Blend</span><span class="amt">1 mL&nbsp;&nbsp;†</span></div>
-                <div class="sf-row"><span>Dried Turkey Tail Extract</span><span class="amt">*</span></div>
-                <div class="sf-row"><span>Fresh Turkey Tail Extract</span><span class="amt">*</span></div>
-                <div class="sf-row"><span>Dried Lemon Balm Extract</span><span class="amt">*</span></div>
-                <div class="sf-row"><span>Feverfew Extract</span><span class="amt">*</span></div>
-                <div class="sf-rule-mid"></div>
-                <p class="sf-note">† Daily Value (DV) not established. <br>* Amount per proprietary blend.</p>
-                <p class="sf-other"><strong>Other Ingredients:</strong> Homegrown Reishi, Turkey Tail, Lemon Balm, Feverfew, Elderberry, Pomegranate, Rose Hip, Sassafras, Organic Alcohol, Vegetable Glycerine.</p>
+            <div class="carousel reveal" data-carousel>
+              <div class="carousel-viewport">
+                <div class="carousel-track">
+                  <img src="assets/prod-headache-relief.jpg" alt="Headache Relief extract, front label" loading="lazy">
+                  <img src="assets/prod-dropper.jpg" alt="Living Terrain dropper bottle" loading="lazy">
+                  <img src="assets/prod-box.jpg" alt="Living Terrain packaged box with the rooted-tree emblem" loading="lazy">
+                </div>
+                <button class="cbtn prev" type="button" aria-label="Previous image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+                <button class="cbtn next" type="button" aria-label="Next image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
               </div>
+              <div class="thumbs"></div>
+            </div>
+            <div class="buy-row" style="--accent:var(--acc-headache)">
+              <span class="price">$36 <span class="unit">/ 2 fl oz</span></span>
+              <button class="btn btn-cart" type="button" data-add-to-cart data-id="headache-relief" data-name="Headache Relief" data-price="36" data-img="assets/prod-headache-relief.jpg">Add to cart</button>
+              <button class="btn btn-outline" type="button" data-buy-now data-id="headache-relief" data-name="Headache Relief" data-price="36" data-img="assets/prod-headache-relief.jpg">Buy now</button>
             </div>
           </div>
         </div>
       </article>
 
-      <!--
-        ⚠️ BUILD NOTE FOR SERENA — DO NOT PUBLISH SUPPLEMENT FACTS AS-IS
-        The panels above use a best-guess mapping because the photographed panel
-        captions did not match the front-label ingredients, and one panel is missing:
-          • Daily Longevity  → Panel B  (draft)
-          • Night Calm       → Panel A  (draft)
-          • Acute Stress     → Panel C  (captioned correctly; still confirm)
-          • Headache Relief  → Panel D  (draft)
-          • Brain Power      → MISSING  (no panel lists Lion's Mane / Ashwagandha → "coming soon")
-        Two things to double-check on the physical labels:
-          1. SASSAFRAS appears in several "Other Ingredients" lists. Sassafras/safrole is
-             FDA-restricted as a food additive — confirm a safrole-free form cleared for retail.
-          2. Front-label icons must match the Supplement Facts (e.g., Brain Power's panel must
-             list Lion's Mane & Ashwagandha to match its front icons).
-      -->
+      <!-- NOTE: Full Supplement Facts panels to be added once verified with Serena. -->
 
     </div>
 
@@ -304,10 +296,37 @@
         </div>
         <div class="reveal">
           <p class="eyebrow">How they're made</p>
-          <h2>Six steps. Six months.</h2>
+          <h2>Six steps. Six months. Maximum extraction.</h2>
           <p>Living Terrain extracts aren't rushed. Mushrooms and botanicals — many grown and gathered fresh — are drawn through a deliberate, multi-stage extraction that unlocks the full spectrum of beneficial compounds: beta-glucans from the mushrooms, polyphenols and adaptogens from the herbs.</p>
           <p>The result is a full-spectrum extract that captures both water- and alcohol-soluble constituents, made in small batches with nothing artificial added.</p>
-          <p style="font-family:var(--display);font-style:italic;font-size:1.4rem;color:#f0e8d6;margin-top:1.25rem">"Maximum extraction. Maximum goodness."</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- THE CREED, EXPLAINED -->
+    <section class="section">
+      <div class="container">
+        <div class="center reveal" style="margin-bottom:2.5rem">
+          <p class="eyebrow">What that means</p>
+          <h2>The craft, step by step</h2>
+          <p class="lede">Our creed isn't a slogan — it describes exactly how each bottle comes to be.</p>
+        </div>
+        <div class="grid grid-3">
+          <div class="explain-card reveal">
+            <span class="step-num">Six steps</span>
+            <h3>A deliberate process</h3>
+            <p>Fresh mushrooms and botanicals move through a careful, multi-stage extraction — nothing rushed and nothing skipped — so both the water- and alcohol-soluble compounds are captured in full.</p>
+          </div>
+          <div class="explain-card reveal">
+            <span class="step-num">Six months</span>
+            <h3>Patience, not shortcuts</h3>
+            <p>Slow, low-and-steady extraction over months coaxes out the beta-glucans, polyphenols, and adaptogens that fast tinctures leave behind — building depth and potency over time.</p>
+          </div>
+          <div class="explain-card reveal">
+            <span class="step-num">Max extraction</span>
+            <h3>Full-spectrum by design</h3>
+            <p>The result is a whole, full-spectrum extract, made in small batches with nothing artificial added — so what's on the label is what's in the bottle.</p>
+          </div>
         </div>
       </div>
     </section>
@@ -343,6 +362,7 @@
             <li><a href="classes.html">Classes</a></li>
             <li><a href="retreats.html">Retreats</a></li>
             <li><a href="products.html">Extracts</a></li>
+            <li><a href="resources.html">Resources</a></li>
             <li><a href="about.html">About</a></li>
           </ul>
         </div>
