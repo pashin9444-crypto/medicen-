@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Secrets & local env — never commit
+.env
+.env.local
+.env.*.local
+
+# Vercel
+.vercel/
+
+# Python venv (present in this workspace)
+.venv/
+
+# OS junk
+.DS_Store
+Thumbs.db

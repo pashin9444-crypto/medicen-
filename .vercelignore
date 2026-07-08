@@ -1,0 +1,7 @@
+# Never upload secrets or local cruft to Vercel (set env vars in the dashboard instead)
+.env
+.env.local
+.env.*.local
+.venv/
+node_modules/
+livingterrain-handoff/

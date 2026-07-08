@@ -1,0 +1,13 @@
+{
+  "name": "living-terrain",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Living Terrain — clinician-crafted botanical extracts marketing site (static + contact API).",
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "vercel dev"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}
