@@ -170,6 +170,20 @@
     else items.push({ id: item.id, name: item.name, price: item.price, img: item.img, qty: 1 });
     writeCart(items);
   }
+  function adjustQty(id, delta) {
+    var items = readCart();
+    for (var i = 0; i < items.length; i++) if (items[i].id === id) {
+      items[i].qty += delta;
+      if (items[i].qty < 1) items.splice(i, 1);
+      break;
+    }
+    writeCart(items);
+  }
+  function qtyInCart(id) {
+    var items = readCart();
+    for (var i = 0; i < items.length; i++) if (items[i].id === id) return items[i].qty;
+    return 0;
+  }
   function updateCartBadges() {
     var c = cartCount();
     document.querySelectorAll("[data-cart-count]").forEach(function (el) {
@@ -177,15 +191,22 @@
       if (c > 0) el.classList.add("has-items"); else el.classList.remove("has-items");
     });
   }
-  // Best-effort notification email (falls through silently on the static preview).
-  function sendContact(subject, name, email, message) {
+  // Posts to /api/contact. When opts.confirm is true, the server also emails a
+  // confirmation to the customer. Resolves to { ok, confirmSent } and never rejects.
+  function sendContact(opts) {
     try {
-      fetch(CONTACT_ENDPOINT, {
+      return fetch(CONTACT_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name, email: email, message: message, subject: subject })
-      }).catch(function () {});
-    } catch (e) {}
+        body: JSON.stringify(opts)
+      }).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (data) {
+          return { ok: r.ok, confirmSent: !!(data && data.confirmSent) };
+        });
+      }).catch(function () { return { ok: false, confirmSent: false }; });
+    } catch (e) {
+      return Promise.resolve({ ok: false, confirmSent: false });
+    }
   }
 
   updateCartBadges();
@@ -200,17 +221,64 @@
     };
   }
   document.querySelectorAll("[data-add-to-cart]").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      addToCart(itemFrom(btn));
-      var orig = btn.textContent;
-      btn.textContent = "Added ✓"; btn.disabled = true;
-      setTimeout(function () { btn.textContent = orig; btn.disabled = false; }, 1200);
-    });
+    var id = btn.getAttribute("data-id");
+    // Build an inline − / qty / + stepper that replaces the button once in the cart.
+    var stepper = document.createElement("div");
+    stepper.className = "qty-stepper";
+    stepper.innerHTML =
+      '<button type="button" data-dec aria-label="Decrease quantity">−</button>' +
+      '<span data-qty>0</span>' +
+      '<button type="button" data-inc aria-label="Increase quantity">+</button>';
+    btn.parentNode.insertBefore(stepper, btn.nextSibling);
+    function sync() {
+      var q = qtyInCart(id);
+      if (q > 0) {
+        btn.hidden = true; stepper.hidden = false;
+        stepper.querySelector("[data-qty]").textContent = q;
+      } else {
+        btn.hidden = false; stepper.hidden = true;
+      }
+    }
+    btn.addEventListener("click", function () { addToCart(itemFrom(btn)); sync(); });
+    stepper.querySelector("[data-inc]").addEventListener("click", function () { adjustQty(id, 1); sync(); });
+    stepper.querySelector("[data-dec]").addEventListener("click", function () { adjustQty(id, -1); sync(); });
+    sync();
   });
   document.querySelectorAll("[data-buy-now]").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      addToCart(itemFrom(btn));
+      if (qtyInCart(btn.getAttribute("data-id")) === 0) addToCart(itemFrom(btn));
       window.location.href = "cart.html";
+    });
+  });
+
+  /* ---------- Payment field formatting (demo checkout) ---------- */
+  document.querySelectorAll('input[name="card"]').forEach(function (el) {
+    el.setAttribute("inputmode", "numeric");
+    el.setAttribute("maxlength", "19");
+    el.setAttribute("autocomplete", "cc-number");
+    el.addEventListener("input", function () {
+      var d = el.value.replace(/\D/g, "").slice(0, 16);
+      el.value = d.replace(/(\d{4})(?=\d)/g, "$1 ");
+    });
+  });
+  document.querySelectorAll('input[name="exp"]').forEach(function (el) {
+    el.setAttribute("inputmode", "numeric");
+    el.setAttribute("maxlength", "7"); // "MM / YY"
+    el.setAttribute("autocomplete", "cc-exp");
+    el.addEventListener("input", function (e) {
+      var deleting = e.inputType && e.inputType.indexOf("delete") === 0;
+      var d = el.value.replace(/\D/g, "").slice(0, 4);
+      if (d.length > 2) el.value = d.slice(0, 2) + " / " + d.slice(2);
+      else if (d.length === 2) el.value = deleting ? d : d + " / ";
+      else el.value = d;
+    });
+  });
+  document.querySelectorAll('input[name="cvc"]').forEach(function (el) {
+    el.setAttribute("inputmode", "numeric");
+    el.setAttribute("maxlength", "3");
+    el.setAttribute("autocomplete", "cc-csc");
+    el.addEventListener("input", function () {
+      el.value = el.value.replace(/\D/g, "").slice(0, 3);
     });
   });
 
@@ -289,13 +357,20 @@
         (price ? " — $" + price : "") +
         "\nPhone: " + (phone || "—") +
         "\nPayment: " + (skipped ? "skipped (pay later)" : "demo — collected on site");
-      sendContact(subject, name, email, message);
-      setText("[data-confirm-msg]",
-        "Thank you, " + name + " — you're signed up for " + item +
-        ". A confirmation email is on its way to " + email + ".", suConfirm);
+      var msgEl = suConfirm.querySelector("[data-confirm-msg]");
+      msgEl.textContent = "Thank you, " + name + " — you're signed up for " + item + ". Sending your confirmation email…";
       suView.hidden = true;
       suConfirm.hidden = false;
       window.scrollTo({ top: 0, behavior: "smooth" });
+      sendContact({
+        subject: subject, name: name, email: email, message: message,
+        confirm: true, kind: (isRetreat ? "retreat" : "class"), item: item
+      }).then(function (res) {
+        msgEl.textContent = "Thank you, " + name + " — you're signed up for " + item + ". " +
+          (res.confirmSent
+            ? "A confirmation email is on its way to " + email + "."
+            : "We've noted your sign-up and will follow up at " + email + " shortly.");
+      });
     };
     suForm.addEventListener("submit", function (e) { e.preventDefault(); completeSignup(false); });
     var suSkip = signup.querySelector("[data-skip-pay]");
@@ -392,14 +467,21 @@
       var msg = "Order:\n" + summary + "\nTotal: $" + cartTotal(items) +
         "\nAddress: " + (coForm.querySelector('[name="address"]').value || "—") +
         "\nPayment: " + (skipped ? "skipped (pay later)" : "demo — collected on site");
-      sendContact("Extract order", name, email, msg);
-      setText("[data-confirm-msg]",
-        "Thank you, " + name + " — your order is confirmed and a receipt is on its way to " + email + ".",
-        coConfirm);
+      var msgEl = coConfirm.querySelector("[data-confirm-msg]");
+      msgEl.textContent = "Thank you, " + name + " — your order is confirmed. Sending your receipt…";
       writeCart([]);
       cartView.hidden = true; checkoutView.hidden = true;
       coConfirm.hidden = false;
       window.scrollTo({ top: 0, behavior: "smooth" });
+      sendContact({
+        subject: "Extract order", name: name, email: email, message: msg,
+        confirm: true, kind: "order", item: "your Living Terrain order"
+      }).then(function (res) {
+        msgEl.textContent = "Thank you, " + name + " — your order is confirmed. " +
+          (res.confirmSent
+            ? "A confirmation email is on its way to " + email + "."
+            : "We've received your order and will email your confirmation to " + email + " shortly.");
+      });
     };
     coForm.addEventListener("submit", function (e) { e.preventDefault(); placeOrder(false); });
     var coSkip = checkoutView.querySelector("[data-skip-pay]");

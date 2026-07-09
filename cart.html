@@ -87,16 +87,16 @@
               <p class="pw-note">Payment · demo checkout — no real charge</p>
               <div class="field">
                 <label for="c-card">Card number</label>
-                <input type="text" id="c-card" name="card" inputmode="numeric" placeholder="4242 4242 4242 4242" autocomplete="off">
+                <input type="text" id="c-card" name="card" inputmode="numeric" maxlength="19" placeholder="4242 4242 4242 4242" autocomplete="cc-number">
               </div>
               <div class="field-row">
                 <div class="field">
                   <label for="c-exp">Expiry</label>
-                  <input type="text" id="c-exp" name="exp" placeholder="MM / YY" autocomplete="off">
+                  <input type="text" id="c-exp" name="exp" inputmode="numeric" maxlength="7" placeholder="MM / YY" autocomplete="cc-exp">
                 </div>
                 <div class="field">
                   <label for="c-cvc">CVC</label>
-                  <input type="text" id="c-cvc" name="cvc" placeholder="123" autocomplete="off">
+                  <input type="text" id="c-cvc" name="cvc" inputmode="numeric" maxlength="3" placeholder="123" autocomplete="cc-csc">
                 </div>
               </div>
               <button type="submit" class="btn btn-primary">Pay &amp; place order</button>

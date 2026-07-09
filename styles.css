@@ -795,6 +795,25 @@ a { color: var(--bronze-deep); text-decoration-thickness: 1px; text-underline-of
 .btn.btn-cart { border: none; background: var(--accent, var(--forest)); color: var(--parchment); }
 .btn.btn-cart:hover { filter: brightness(1.08); background: var(--accent, var(--forest)); }
 
+/* Inline quantity stepper on product cards (replaces Add to cart once in cart) */
+.qty-stepper {
+  display: inline-flex; align-items: center; gap: 0.65rem;
+  background: var(--accent, var(--forest)); color: var(--parchment);
+  border-radius: 40px; padding: 0.35rem 0.5rem;
+}
+.qty-stepper button {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid rgba(244,238,224,0.5); background: rgba(244,238,224,0.16);
+  color: var(--parchment); cursor: pointer; font-size: 1.15rem; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s ease;
+}
+.qty-stepper button:hover { background: rgba(244,238,224,0.32); }
+.qty-stepper [data-qty] {
+  min-width: 1.6ch; text-align: center;
+  font-family: var(--label); font-size: 0.95rem; font-weight: 500;
+}
+
 /* ---------- Amazon-style product carousel ---------- */
 .carousel { position: relative; align-self: start; }
 .carousel .carousel-viewport {
