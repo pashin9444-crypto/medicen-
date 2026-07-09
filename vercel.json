@@ -4,6 +4,8 @@
   "trailingSlash": false,
   "redirects": [
     { "source": "/guide.html", "destination": "/products.html", "permanent": true },
-    { "source": "/guide", "destination": "/products.html", "permanent": true }
+    { "source": "/guide", "destination": "/products.html", "permanent": true },
+    { "source": "/thewellclasses", "destination": "/classes.html", "permanent": false },
+    { "source": "/thewellclasses.html", "destination": "/classes.html", "permanent": false }
   ]
 }

@@ -330,18 +330,30 @@
     var item = params.get("item") || "Living Terrain";
     var price = params.get("price");
     var when = params.get("when");
-    var isRetreat = type === "retreat";
+    var typeLabels = {
+      class: { eyebrow: "Class sign-up", label: "Class" },
+      retreat: { eyebrow: "Retreat sign-up", label: "Retreat" },
+      subscription: { eyebrow: "Membership sign-up", label: "Membership" }
+    };
+    var L = typeLabels[type] || { eyebrow: "Sign up", label: "Item" };
+    var fmtPrice = function (p) {
+      if (!p) return "Free";
+      var n = parseFloat(p);
+      if (isNaN(n)) return "$" + p;
+      var s = (Math.round(n * 100) % 100 === 0) ? String(Math.round(n)) : n.toFixed(2);
+      return "$" + s.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    };
 
     // Note: the eyebrow and <h1> live in the page-hero, outside [data-signup],
     // so these resolve against the whole document, not the signup container.
-    setText("[data-su-eyebrow]", isRetreat ? "Retreat sign-up" : "Class sign-up");
+    setText("[data-su-eyebrow]", L.eyebrow);
     setText("[data-su-item]", item);
-    setText("[data-su-label]", isRetreat ? "Retreat" : "Class", signup);
+    setText("[data-su-label]", L.label, signup);
     setText("[data-su-name]", item, signup);
     var whenRow = signup.querySelector("[data-su-when-row]");
     if (when) setText("[data-su-when]", when, signup);
     else if (whenRow) whenRow.hidden = true;
-    setText("[data-su-price]", price ? "$" + price : "Free", signup);
+    setText("[data-su-price]", fmtPrice(price), signup);
 
     var suForm = signup.querySelector("#signup-form");
     var suView = signup.querySelector("[data-signup-view]");
@@ -352,9 +364,9 @@
       var email = (suForm.querySelector('[name="email"]').value || "").trim();
       if (!name || !email || !emailOk(email)) { suForm.reportValidity(); return; }
       var phone = (suForm.querySelector('[name="phone"]').value || "").trim();
-      var subject = (isRetreat ? "Retreat sign-up" : "Class sign-up") + ": " + item;
+      var subject = L.eyebrow + ": " + item;
       var message = "Sign-up for: " + item + (when ? " (" + when + ")" : "") +
-        (price ? " — $" + price : "") +
+        (price ? " — " + fmtPrice(price) : "") +
         "\nPhone: " + (phone || "—") +
         "\nPayment: " + (skipped ? "skipped (pay later)" : "demo — collected on site");
       var msgEl = suConfirm.querySelector("[data-confirm-msg]");
@@ -364,7 +376,7 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
       sendContact({
         subject: subject, name: name, email: email, message: message,
-        confirm: true, kind: (isRetreat ? "retreat" : "class"), item: item
+        confirm: true, kind: type, item: item
       }).then(function (res) {
         msgEl.textContent = "Thank you, " + name + " — you're signed up for " + item + ". " +
           (res.confirmSent
