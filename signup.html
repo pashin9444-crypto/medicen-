@@ -55,6 +55,38 @@
             <div class="os-row os-total"><span>Total</span><span data-su-price>—</span></div>
           </div>
 
+          <!-- Retreat-only: pick location + room (revealed by JS when type=retreat) -->
+          <div class="retreat-opts" data-retreat-opts hidden>
+            <fieldset>
+              <legend>Choose your location</legend>
+              <select class="loc-select" data-retreat-location aria-label="Retreat location">
+                <option value="Lake Tahoe">Lake Tahoe</option>
+                <option value="Santa Cruz">Santa Cruz</option>
+                <option value="Sonoma">Sonoma</option>
+              </select>
+            </fieldset>
+            <fieldset>
+              <legend>Choose your room</legend>
+              <div class="room-opts">
+                <label class="room-opt">
+                  <input type="radio" name="room" value="Shared Room (2 per room)" data-price="1495" checked>
+                  <span class="ro-main"><span class="ro-name">Shared Room</span><span class="ro-sub">2 per room · $1,295 early bird</span></span>
+                  <span class="ro-price">$1,495</span>
+                </label>
+                <label class="room-opt">
+                  <input type="radio" name="room" value="Private Room" data-price="1995">
+                  <span class="ro-main"><span class="ro-name">Private Room</span><span class="ro-sub">$1,695 early bird</span></span>
+                  <span class="ro-price">$1,995</span>
+                </label>
+                <label class="room-opt">
+                  <input type="radio" name="room" value="Couples (shared king)" data-price="2895">
+                  <span class="ro-main"><span class="ro-name">Couples</span><span class="ro-sub">shared king · $2,595 early bird</span></span>
+                  <span class="ro-price">$2,895</span>
+                </label>
+              </div>
+            </fieldset>
+          </div>
+
           <form class="form reveal" id="signup-form" novalidate>
             <div class="field-row">
               <div class="field">
@@ -69,6 +101,11 @@
             <div class="field">
               <label for="s-phone">Phone <span class="opt">(optional)</span></label>
               <input type="tel" id="s-phone" name="phone" autocomplete="tel">
+            </div>
+
+            <!-- Class-only liability waiver (revealed by JS when type=class) -->
+            <div class="field" data-waiver hidden>
+              <label class="waiver-label"><input type="checkbox" data-waiver-input> I have read and agree to the <strong>liability waiver</strong>: I understand these classes are educational and not medical advice, that I should consult my own provider about my health, and that I take part at my own risk.</label>
             </div>
 
             <!-- Fake, skippable paywall -->

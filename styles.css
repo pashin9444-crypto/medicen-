@@ -551,6 +551,7 @@ a { color: var(--bronze-deep); text-decoration-thickness: 1px; text-underline-of
   box-shadow: inset 0 0 0 4px rgba(255,255,255,0.25);
 }
 .season-icon img { width: 66px; height: 66px; object-fit: contain; }
+.season-icon svg { width: 48px; height: 48px; color: #fff; }
 .season-card h3 { margin-bottom: 0.25rem; }
 .season-card .season-when {
   font-family: var(--label); text-transform: uppercase; letter-spacing: 0.1em;
@@ -1108,3 +1109,108 @@ a { color: var(--bronze-deep); text-decoration-thickness: 1px; text-underline-of
   text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.8rem; text-decoration: none;
 }
 .tw-link:hover { text-decoration: underline; }
+
+/* ============================================================
+   FIX: .pillar cards have a LIGHT background, so their text must
+   stay dark even inside a dark .bg-forest section (was inheriting
+   light text → invisible on Retreats "Why choose" & About philosophy).
+   ============================================================ */
+.bg-forest .pillar h3 { color: var(--forest-deep); }
+.bg-forest .pillar p { color: var(--ink-soft); }
+.bg-forest .pillar .card-link { color: var(--bronze-deep); }
+
+/* ---------- Retreat sign-up: location + room pickers ---------- */
+.retreat-opts { margin: 0 0 1.5rem; }
+.retreat-opts fieldset { border: none; padding: 0; margin: 0 0 1.25rem; }
+.retreat-opts legend {
+  font-family: var(--label); text-transform: uppercase; letter-spacing: 0.1em;
+  font-size: 0.72rem; color: var(--forest-deep); margin-bottom: 0.6rem; padding: 0;
+}
+.loc-select {
+  width: 100%; padding: 0.85rem 1rem; border: 1px solid rgba(122,95,44,0.35);
+  border-radius: var(--radius); background: var(--parchment);
+  font-family: var(--body); font-size: 1.02rem; color: var(--ink);
+}
+.loc-select:focus { outline: none; border-color: var(--bronze); box-shadow: 0 0 0 3px rgba(154,118,59,0.22); }
+.room-opts { display: grid; gap: 0.6rem; }
+.room-opt {
+  display: flex; align-items: center; gap: 0.9rem; cursor: pointer;
+  border: 1px solid rgba(122,95,44,0.3); border-radius: 8px; padding: 0.9rem 1.1rem;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.room-opt:hover { border-color: var(--bronze); }
+.room-opt input { accent-color: var(--forest); width: 18px; height: 18px; flex: none; }
+.room-opt .ro-main { flex: 1; }
+.room-opt .ro-name { display: block; font-weight: 600; color: var(--forest-deep); }
+.room-opt .ro-sub { font-size: 0.82rem; color: var(--ink-soft); }
+.room-opt .ro-price { font-family: var(--display); font-size: 1.3rem; color: var(--forest-deep); white-space: nowrap; }
+.room-opt:has(input:checked) { border-color: var(--bronze); background: var(--parchment-deep); box-shadow: inset 0 0 0 1px var(--bronze); }
+
+/* Class waiver checkbox */
+.waiver-label {
+  display: flex; gap: 0.6rem; align-items: flex-start; cursor: pointer;
+  text-transform: none; letter-spacing: normal; font-family: var(--body);
+  font-size: 0.95rem; color: var(--ink); line-height: 1.45;
+}
+.waiver-label input { width: 18px; height: 18px; margin-top: 3px; flex: none; accent-color: var(--forest); }
+
+/* ---------- Resources: featured Reishi ---------- */
+.reishi-frame {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--parchment); border: 1px solid rgba(122,95,44,0.25); border-radius: 12px;
+  padding: clamp(1.5rem, 4vw, 2.5rem); color: var(--bronze-deep); box-shadow: var(--shadow-soft);
+}
+.reishi-frame svg { width: min(320px, 82%); height: auto; }
+.reishi-cap {
+  margin-top: 1rem; font-family: var(--label); text-transform: uppercase;
+  letter-spacing: 0.14em; font-size: 0.72rem; color: var(--bronze-deep); text-align: center;
+}
+.reishi-cap em { font-family: var(--display); text-transform: none; letter-spacing: normal; font-size: 1.05rem; }
+.res-links { list-style: none; margin: 0.4rem 0 0; padding: 0; }
+.res-links li { padding: 0.4rem 0; border-bottom: 1px solid rgba(122,95,44,0.14); }
+.res-links li:last-child { border-bottom: 0; }
+.res-links a { text-decoration: none; }
+.res-links a:hover { text-decoration: underline; }
+
+/* ---------- Recipes page ---------- */
+.recipe {
+  background: var(--parchment-deep); border: 1px solid rgba(122,95,44,0.2);
+  border-left: 4px solid var(--c, var(--bronze)); border-radius: 10px;
+  padding: 1.75rem 1.6rem; margin-bottom: clamp(1.25rem, 2.5vw, 2rem);
+}
+.recipe h3 { font-size: 1.6rem; margin-bottom: 0.3rem; }
+.recipe .r-meta {
+  font-family: var(--label); text-transform: uppercase; letter-spacing: 0.1em;
+  font-size: 0.66rem; color: var(--bronze-deep); margin-bottom: 1rem;
+}
+.recipe .r-cols { display: grid; grid-template-columns: 1fr 1.4fr; gap: clamp(1rem, 3vw, 2rem); }
+@media (max-width: 640px) { .recipe .r-cols { grid-template-columns: 1fr; } }
+.recipe h4 {
+  font-family: var(--label); text-transform: uppercase; letter-spacing: 0.12em;
+  font-size: 0.72rem; color: var(--forest-deep); margin: 0 0 0.6rem;
+}
+.recipe ul { margin: 0; padding-left: 1.1rem; }
+.recipe ul li { margin-bottom: 0.35rem; color: var(--ink); }
+.recipe ol { margin: 0; padding-left: 1.2rem; }
+.recipe ol li { margin-bottom: 0.5rem; color: var(--ink); }
+
+/* ---------- "Join the community" membership band ---------- */
+.join-band {
+  background: var(--forest); color: var(--parchment);
+  border-radius: 12px; padding: clamp(2rem, 4vw, 3rem); text-align: center;
+  position: relative; overflow: hidden;
+}
+.join-band::before {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(600px 260px at 85% -20%, rgba(154,118,59,0.28), transparent 60%);
+}
+.join-band > * { position: relative; }
+.join-band h2 { color: var(--parchment); }
+.join-band p { color: #e6ddc9; max-width: 58ch; margin-inline: auto; }
+.join-band .join-price { font-family: var(--display); font-size: 2.2rem; color: var(--bronze); }
+.join-perks {
+  list-style: none; margin: 1.25rem auto 1.75rem; padding: 0; max-width: 640px;
+  display: grid; gap: 0.5rem 1.5rem; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); text-align: left;
+}
+.join-perks li { position: relative; padding-left: 1.5rem; color: #e6ddc9; }
+.join-perks li::before { content: "✓"; position: absolute; left: 0; color: var(--bronze); font-weight: 700; }

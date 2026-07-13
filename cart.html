@@ -53,68 +53,10 @@
           <div class="cart-total" data-cart-total-row hidden>
             <span>Total</span><span data-cart-total>$0</span>
           </div>
-          <div style="display:flex;gap:0.8rem;flex-wrap:wrap;justify-content:flex-end" data-cart-actions hidden>
+          <div style="display:flex;gap:0.8rem;flex-wrap:wrap;justify-content:flex-end;align-items:center" data-cart-actions hidden>
+            <p style="flex-basis:100%;text-align:right;margin:0 0 0.2rem;font-size:0.85rem;color:var(--ink-soft)">Shipping &amp; tax are calculated at checkout · payment secured by Stripe</p>
             <a class="btn btn-outline" href="products.html">Keep shopping</a>
             <button class="btn btn-primary" type="button" data-goto-checkout>Proceed to checkout</button>
-          </div>
-        </div>
-
-        <!-- CHECKOUT VIEW -->
-        <div class="checkout" data-checkout-view hidden>
-          <div class="order-summary reveal">
-            <h3>Order summary</h3>
-            <div data-checkout-lines></div>
-            <div class="os-row os-total"><span>Total</span><span data-checkout-total>$0</span></div>
-          </div>
-
-          <form class="form" id="checkout-form" novalidate>
-            <div class="field-row">
-              <div class="field">
-                <label for="c-name">Name</label>
-                <input type="text" id="c-name" name="name" autocomplete="name" required>
-              </div>
-              <div class="field">
-                <label for="c-email">Email</label>
-                <input type="email" id="c-email" name="email" autocomplete="email" required>
-              </div>
-            </div>
-            <div class="field">
-              <label for="c-address">Shipping address <span class="opt">(optional)</span></label>
-              <input type="text" id="c-address" name="address" autocomplete="street-address">
-            </div>
-
-            <div class="paywall">
-              <p class="pw-note">Payment · demo checkout — no real charge</p>
-              <div class="field">
-                <label for="c-card">Card number</label>
-                <input type="text" id="c-card" name="card" inputmode="numeric" maxlength="19" placeholder="4242 4242 4242 4242" autocomplete="cc-number">
-              </div>
-              <div class="field-row">
-                <div class="field">
-                  <label for="c-exp">Expiry</label>
-                  <input type="text" id="c-exp" name="exp" inputmode="numeric" maxlength="7" placeholder="MM / YY" autocomplete="cc-exp">
-                </div>
-                <div class="field">
-                  <label for="c-cvc">CVC</label>
-                  <input type="text" id="c-cvc" name="cvc" inputmode="numeric" maxlength="3" placeholder="123" autocomplete="cc-csc">
-                </div>
-              </div>
-              <button type="submit" class="btn btn-primary">Pay &amp; place order</button>
-              <div><button type="button" class="skip-pay" data-skip-pay>Skip payment for now →</button></div>
-            </div>
-            <p class="form-status" role="status" aria-live="polite"></p>
-            <p><button type="button" class="skip-pay" data-back-to-cart>← Back to cart</button></p>
-          </form>
-        </div>
-
-        <!-- CONFIRMATION -->
-        <div class="confirm-box reveal" data-confirm hidden>
-          <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></div>
-          <h2>Order placed!</h2>
-          <p data-confirm-msg>Thank you — we've received your order and a confirmation email is on its way to your inbox.</p>
-          <div style="margin-top:1.5rem;display:flex;gap:0.8rem;justify-content:center;flex-wrap:wrap">
-            <a class="btn btn-outline" href="products.html">Keep shopping</a>
-            <a class="btn btn-outline" href="index.html">Home</a>
           </div>
         </div>
 

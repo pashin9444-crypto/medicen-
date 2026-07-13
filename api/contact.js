@@ -105,31 +105,59 @@ module.exports = async function handler(req, res) {
   if (wantConfirm) {
     const isOrder = kind === "order";
     const what = item || (isOrder ? "your order" : "your sign-up");
-    const custSubject = isOrder
-      ? "Your Living Terrain order confirmation"
-      : "You're signed up — Living Terrain";
-    const intro = isOrder
-      ? "Thanks for your order! Here's a summary of what we received:"
-      : "Thanks for signing up! Here's a summary of what we received:";
-    const closing = isOrder
-      ? "We'll send tracking details as soon as your order ships."
-      : "We'll be in touch with any final details before your session.";
+    // Kind-specific heading / subject / closing content.
+    const content = {
+      order: {
+        heading: "Order confirmed",
+        subject: "Your Living Terrain order confirmation",
+        intro: "Thanks for your order! Here's a summary of what we received:",
+        closing: "We'll email your tracking details as soon as your order ships — usually within 2–3 business days.",
+      },
+      class: {
+        heading: "You're signed up!",
+        subject: "Your Living Terrain class — confirmed",
+        intro: "Thanks for signing up for a class! Here's what we received:",
+        closing: "Please arrive about 10 minutes early and wear comfortable clothing — you've agreed to our class liability waiver. We'll send a reminder before your class.",
+      },
+      retreat: {
+        heading: "Your retreat is reserved",
+        subject: "Your Living Terrain retreat — confirmed",
+        intro: "Thanks for reserving a retreat! Here's what we received:",
+        closing: "We'll follow up with arrival details, what to bring, and deposit/balance information for your chosen location and room.",
+      },
+      subscription: {
+        heading: "Welcome to the community",
+        subject: "Welcome to Living Terrain",
+        intro: "Thanks for joining! Here's what we set up:",
+        closing: "Your member perks are active — enjoy your free monthly class and member discounts on classes, extracts, and retreats.",
+      },
+    };
+    const c = content[kind] || {
+      heading: "You're all set",
+      subject: "Living Terrain — confirmation",
+      intro: "Thanks for reaching out! Here's what we received:",
+      closing: "We'll be in touch shortly.",
+    };
 
     const custText =
-      "Hi " + name + ",\n\n" + intro + "\n\n" + (message || what) + "\n\n" + closing +
+      "Hi " + name + ",\n\n" + c.intro + "\n\n" + (message || what) + "\n\n" + c.closing +
+      "\n\nQuestions? Just reply to this email or write to info@livingterrain.org." +
       "\n\n— Living Terrain\nRooted in nature. Backed by science. Made by a PA.";
 
     const custHtml =
       '<div style="font-family:Georgia,serif;color:#33342c;max-width:560px">' +
-      '<h2 style="color:#2f3d2c">' + esc(isOrder ? "Order confirmed" : "You're signed up!") + "</h2>" +
+      '<h2 style="color:#2f3d2c">' + esc(c.heading) + "</h2>" +
       "<p>Hi " + esc(name) + ",</p>" +
-      "<p>" + esc(intro) + "</p>" +
+      "<p>" + esc(c.intro) + "</p>" +
       '<div style="background:#f4eee0;border:1px solid #d8c9a6;border-radius:6px;padding:12px 16px;white-space:pre-wrap">' +
       esc(message || what) + "</div>" +
-      "<p>" + esc(closing) + "</p>" +
+      "<p>" + esc(c.closing) + "</p>" +
+      '<p style="font-size:13px;color:#565644">Questions? Just reply to this email or write to <a href="mailto:info@livingterrain.org">info@livingterrain.org</a>.</p>' +
       '<p style="color:#7d5f2c;font-style:italic">— Living Terrain · Rooted in nature. Backed by science. Made by a PA.</p>' +
-      '<p style="font-size:12px;color:#565644">This checkout is a demo — no card has been charged.</p>' +
+      (isOrder || kind === "retreat" || kind === "class"
+        ? '<p style="font-size:12px;color:#565644">This checkout is a demo — no card has been charged.</p>' : "") +
       "</div>";
+    const custSubject = c.subject;
 
     try {
       confirmSent = await sendEmail(apiKey, {

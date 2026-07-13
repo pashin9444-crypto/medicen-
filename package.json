@@ -9,5 +9,8 @@
   },
   "devDependencies": {
     "serve": "^14.2.4"
+  },
+  "dependencies": {
+    "stripe": "^22.3.1"
   }
 }

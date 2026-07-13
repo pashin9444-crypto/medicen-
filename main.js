@@ -191,6 +191,14 @@
       if (c > 0) el.classList.add("has-items"); else el.classList.remove("has-items");
     });
   }
+  var ORDER_INBOX = "info@livingterrain.org";
+  // Builds a mailto to the business inbox so an order/sign-up is never lost if the
+  // mail server can't be reached (e.g. static preview or an unverified domain).
+  function inboxMailto(subjectLine, bodyText) {
+    return "mailto:" + ORDER_INBOX +
+      "?subject=" + encodeURIComponent(subjectLine) +
+      "&body=" + encodeURIComponent(bodyText);
+  }
   // Posts to /api/contact. When opts.confirm is true, the server also emails a
   // confirmation to the customer. Resolves to { ok, confirmSent } and never rejects.
   function sendContact(opts) {
@@ -244,10 +252,29 @@
     stepper.querySelector("[data-dec]").addEventListener("click", function () { adjustQty(id, -1); sync(); });
     sync();
   });
+  // Send the shopper to Stripe's hosted checkout. Payload is { id } for a single
+  // product or { items:[{id,qty}] } for the cart — never any price (server prices it).
+  function startCheckout(payload, btn) {
+    var orig = btn ? btn.textContent : "";
+    if (btn) { btn.disabled = true; btn.textContent = "Redirecting…"; }
+    return fetch("/api/create-checkout-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (data) {
+        if (r.ok && data.url) { window.location.assign(data.url); return; }
+        throw new Error(data.error || "Checkout is unavailable right now.");
+      });
+    }).catch(function (err) {
+      if (btn) { btn.disabled = false; btn.textContent = orig; }
+      alert(err.message || "Sorry, checkout is unavailable right now. Please try again, or email info@livingterrain.org.");
+    });
+  }
+
   document.querySelectorAll("[data-buy-now]").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      if (qtyInCart(btn.getAttribute("data-id")) === 0) addToCart(itemFrom(btn));
-      window.location.href = "cart.html";
+      startCheckout({ id: btn.getAttribute("data-id") }, btn);
     });
   });
 
@@ -353,21 +380,61 @@
     var whenRow = signup.querySelector("[data-su-when-row]");
     if (when) setText("[data-su-when]", when, signup);
     else if (whenRow) whenRow.hidden = true;
-    setText("[data-su-price]", fmtPrice(price), signup);
+
+    // Retreat sign-ups let you choose a location and room type (which sets the price).
+    var currentPrice = price;
+    var retreatOpts = signup.querySelector("[data-retreat-opts]");
+    if (type === "retreat" && retreatOpts) {
+      retreatOpts.hidden = false;
+      var applyRoom = function () {
+        var picked = retreatOpts.querySelector('input[name="room"]:checked');
+        if (picked) currentPrice = picked.getAttribute("data-price");
+        setText("[data-su-price]", fmtPrice(currentPrice), signup);
+      };
+      retreatOpts.querySelectorAll('input[name="room"]').forEach(function (r) {
+        r.addEventListener("change", applyRoom);
+      });
+      applyRoom(); // set price from the default-checked room
+    } else {
+      setText("[data-su-price]", fmtPrice(price), signup);
+    }
 
     var suForm = signup.querySelector("#signup-form");
     var suView = signup.querySelector("[data-signup-view]");
     var suConfirm = signup.querySelector("[data-confirm]");
+    var suStatus = suForm.querySelector(".form-status");
+
+    // Classes require a signed liability waiver.
+    var waiver = signup.querySelector("[data-waiver]");
+    if (type === "class" && waiver) waiver.hidden = false;
 
     var completeSignup = function (skipped) {
       var name = (suForm.querySelector('[name="name"]').value || "").trim();
       var email = (suForm.querySelector('[name="email"]').value || "").trim();
       if (!name || !email || !emailOk(email)) { suForm.reportValidity(); return; }
+      var waiverAgreed = "n/a";
+      if (waiver && !waiver.hidden) {
+        var wi = waiver.querySelector("[data-waiver-input]");
+        if (wi && !wi.checked) {
+          if (suStatus) { suStatus.style.color = "#8f5836"; suStatus.textContent = "Please agree to the liability waiver to sign up for a class."; }
+          wi.focus();
+          return;
+        }
+        waiverAgreed = "agreed";
+      }
       var phone = (suForm.querySelector('[name="phone"]').value || "").trim();
+      var retreatDetail = "";
+      if (type === "retreat" && retreatOpts) {
+        var loc = retreatOpts.querySelector("[data-retreat-location]").value;
+        var picked = retreatOpts.querySelector('input[name="room"]:checked');
+        retreatDetail = "\nLocation: " + loc + "\nRoom: " + (picked ? picked.value : "—");
+      }
       var subject = L.eyebrow + ": " + item;
       var message = "Sign-up for: " + item + (when ? " (" + when + ")" : "") +
-        (price ? " — " + fmtPrice(price) : "") +
+        (currentPrice ? " — " + fmtPrice(currentPrice) : "") +
+        retreatDetail +
         "\nPhone: " + (phone || "—") +
+        (waiverAgreed !== "n/a" ? "\nWaiver: " + waiverAgreed : "") +
         "\nPayment: " + (skipped ? "skipped (pay later)" : "demo — collected on site");
       var msgEl = suConfirm.querySelector("[data-confirm-msg]");
       msgEl.textContent = "Thank you, " + name + " — you're signed up for " + item + ". Sending your confirmation email…";
@@ -378,10 +445,15 @@
         subject: subject, name: name, email: email, message: message,
         confirm: true, kind: type, item: item
       }).then(function (res) {
-        msgEl.textContent = "Thank you, " + name + " — you're signed up for " + item + ". " +
-          (res.confirmSent
-            ? "A confirmation email is on its way to " + email + "."
-            : "We've noted your sign-up and will follow up at " + email + " shortly.");
+        if (res.ok) {
+          msgEl.textContent = "Thank you, " + name + " — you're signed up for " + item + ". " +
+            (res.confirmSent
+              ? "A confirmation email is on its way to " + email + "."
+              : "We've noted your sign-up and will follow up at " + email + " shortly.");
+        } else {
+          var link = inboxMailto(subject, message + "\n\nFrom: " + name + " <" + email + ">");
+          msgEl.innerHTML = "Thank you, " + esc(name) + " — your sign-up is saved. We couldn't reach our mail server automatically; <a href=\"" + link + "\">tap here to email it to " + ORDER_INBOX + "</a> and we'll take it from there.";
+        }
       });
     };
     suForm.addEventListener("submit", function (e) { e.preventDefault(); completeSignup(false); });
@@ -389,19 +461,14 @@
     if (suSkip) suSkip.addEventListener("click", function () { completeSignup(true); });
   }
 
-  /* ---------- Cart + checkout page ---------- */
+  /* ---------- Cart page (checkout hands off to Stripe) ---------- */
   var cartView = document.querySelector("[data-cart-view]");
-  var checkoutView = document.querySelector("[data-checkout-view]");
-  if (cartView && checkoutView) {
+  if (cartView) {
     var itemsWrap = document.querySelector("[data-cart-items]");
     var emptyMsg = document.querySelector("[data-cart-empty]");
     var totalRow = document.querySelector("[data-cart-total-row]");
     var totalEl = document.querySelector("[data-cart-total]");
     var actions = document.querySelector("[data-cart-actions]");
-    var coConfirm = document.querySelector("[data-confirm]");
-    var coForm = document.querySelector("#checkout-form");
-    var coLines = document.querySelector("[data-checkout-lines]");
-    var coTotal = document.querySelector("[data-checkout-total]");
 
     var renderCart = function () {
       var items = readCart();
@@ -444,59 +511,12 @@
     };
     renderCart();
 
-    var renderSummary = function () {
-      var items = readCart();
-      coLines.innerHTML = "";
-      items.forEach(function (it) {
-        var r = document.createElement("div");
-        r.className = "os-row";
-        r.innerHTML = "<span>" + esc(it.name) + " × " + it.qty + "</span><span>$" + (it.qty * it.price) + "</span>";
-        coLines.appendChild(r);
-      });
-      coTotal.textContent = "$" + cartTotal(items);
-    };
-
     var gotoCheckout = document.querySelector("[data-goto-checkout]");
     if (gotoCheckout) gotoCheckout.addEventListener("click", function () {
-      if (!readCart().length) return;
-      renderSummary();
-      cartView.hidden = true; checkoutView.hidden = false;
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    });
-    var backToCart = document.querySelector("[data-back-to-cart]");
-    if (backToCart) backToCart.addEventListener("click", function () {
-      checkoutView.hidden = true; cartView.hidden = false; renderCart();
-    });
-
-    var placeOrder = function (skipped) {
-      var name = (coForm.querySelector('[name="name"]').value || "").trim();
-      var email = (coForm.querySelector('[name="email"]').value || "").trim();
-      if (!name || !email || !emailOk(email)) { coForm.reportValidity(); return; }
       var items = readCart();
-      var summary = items.map(function (it) {
-        return it.name + " × " + it.qty + " ($" + (it.qty * it.price) + ")";
-      }).join("\n");
-      var msg = "Order:\n" + summary + "\nTotal: $" + cartTotal(items) +
-        "\nAddress: " + (coForm.querySelector('[name="address"]').value || "—") +
-        "\nPayment: " + (skipped ? "skipped (pay later)" : "demo — collected on site");
-      var msgEl = coConfirm.querySelector("[data-confirm-msg]");
-      msgEl.textContent = "Thank you, " + name + " — your order is confirmed. Sending your receipt…";
-      writeCart([]);
-      cartView.hidden = true; checkoutView.hidden = true;
-      coConfirm.hidden = false;
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      sendContact({
-        subject: "Extract order", name: name, email: email, message: msg,
-        confirm: true, kind: "order", item: "your Living Terrain order"
-      }).then(function (res) {
-        msgEl.textContent = "Thank you, " + name + " — your order is confirmed. " +
-          (res.confirmSent
-            ? "A confirmation email is on its way to " + email + "."
-            : "We've received your order and will email your confirmation to " + email + " shortly.");
-      });
-    };
-    coForm.addEventListener("submit", function (e) { e.preventDefault(); placeOrder(false); });
-    var coSkip = checkoutView.querySelector("[data-skip-pay]");
-    if (coSkip) coSkip.addEventListener("click", function () { placeOrder(true); });
+      if (!items.length) return;
+      // Hand off to Stripe's hosted checkout with the cart contents (ids + qty only).
+      startCheckout({ items: items.map(function (it) { return { id: it.id, qty: it.qty }; }) }, gotoCheckout);
+    });
   }
 })();
