@@ -41,31 +41,44 @@ module.exports = async function handler(req, res) {
 
   const site = process.env.SITE_URL || ("https://" + (req.headers.host || "livingterrain.org"));
 
-  try {
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      line_items: line_items,
-      success_url: site + "/success.html?session_id={CHECKOUT_SESSION_ID}",
-      cancel_url: site + "/products.html",
-      // Collect where to ship + let Stripe Tax figure CA/Sacramento sales tax.
-      shipping_address_collection: { allowed_countries: ["US"] },
-      automatic_tax: { enabled: true },
-      // Flat-rate shipping for now (easy to change / swap for live UPS later).
-      shipping_options: [{
-        shipping_rate_data: {
-          type: "fixed_amount",
-          fixed_amount: { amount: 800, currency: "usd" },
-          display_name: "Standard shipping",
-          delivery_estimate: {
-            minimum: { unit: "business_day", value: 3 },
-            maximum: { unit: "business_day", value: 7 },
-          },
+  // Base session — collect the shipping address + a flat shipping rate.
+  const baseSession = {
+    mode: "payment",
+    line_items: line_items,
+    success_url: site + "/success.html?session_id={CHECKOUT_SESSION_ID}",
+    cancel_url: site + "/products.html",
+    shipping_address_collection: { allowed_countries: ["US"] },
+    // Flat-rate shipping for now (easy to change / swap for live UPS later).
+    shipping_options: [{
+      shipping_rate_data: {
+        type: "fixed_amount",
+        fixed_amount: { amount: 800, currency: "usd" },
+        display_name: "Standard shipping",
+        delivery_estimate: {
+          minimum: { unit: "business_day", value: 3 },
+          maximum: { unit: "business_day", value: 7 },
         },
-      }],
-      metadata: {
-        order: requested.map(function (r) { return r.id + "×" + (parseInt(r.qty, 10) || 1); }).join(", "),
       },
-    });
+    }],
+    metadata: {
+      order: requested.map(function (r) { return r.id + "×" + (parseInt(r.qty, 10) || 1); }).join(", "),
+    },
+  };
+
+  try {
+    let session;
+    try {
+      // Preferred: let Stripe Tax auto-calculate CA/Sacramento sales tax.
+      session = await stripe.checkout.sessions.create(
+        Object.assign({}, baseSession, { automatic_tax: { enabled: true } })
+      );
+    } catch (taxErr) {
+      // Stripe Tax may not be activated in the dashboard yet — proceed WITHOUT
+      // auto-tax so checkout still works today. Turn Stripe Tax on later and it
+      // will start applying automatically.
+      console.warn("automatic_tax unavailable, creating checkout without it:", taxErr.message);
+      session = await stripe.checkout.sessions.create(baseSession);
+    }
     return res.status(200).json({ url: session.url });
   } catch (err) {
     console.error("create-checkout-session error", err);
