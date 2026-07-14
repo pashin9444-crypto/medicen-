@@ -659,3 +659,80 @@
     });
   }
 })();
+
+/* ============================================================
+   Site-wide "Sign in with Google" (in the header, every page).
+   Optional for customers (saves cart/orders later); if the signed-in
+   email is an admin/super-admin, the Edit bar auto-appears on reload.
+   Session is stored in localStorage under "lt-admin".
+   ============================================================ */
+(function siteAuth() {
+  "use strict";
+  var KEY = "lt-admin";
+  function getSession() {
+    try { var s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.exp && s.exp < Date.now()) { localStorage.removeItem(KEY); return null; } return s; }
+    catch (e) { return null; }
+  }
+  function setSession(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+  function clearSession() { try { localStorage.removeItem(KEY); } catch (e) {} }
+  function firstName(n) { return (String(n || "").split(" ")[0]) || "there"; }
+
+  var nav = document.querySelector(".site-header .nav");
+  if (!nav) return; // pages without the standard header
+  var slot = document.createElement("span");
+  slot.className = "auth-slot";
+  nav.appendChild(slot);
+
+  function loadGis(cb) {
+    if (window.google && google.accounts && google.accounts.id) { cb(); return; }
+    if (!document.getElementById("gis-script")) {
+      var sc = document.createElement("script"); sc.id = "gis-script";
+      sc.src = "https://accounts.google.com/gsi/client"; sc.async = true;
+      document.head.appendChild(sc);
+    }
+    var tries = 0;
+    (function wait() { if (window.google && google.accounts && google.accounts.id) cb(); else if (tries++ < 60) setTimeout(wait, 100); })();
+  }
+
+  function onCredential(resp) {
+    fetch("/api/signin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ credential: resp.credential }) })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d && d.ok) {
+          setSession({ email: d.email, name: d.name, role: d.role, token: resp.credential, exp: Date.now() + 55 * 60 * 1000 });
+          window.location.reload();
+        }
+      }).catch(function () {});
+  }
+
+  var s = getSession();
+  if (s) {
+    slot.innerHTML = '<span class="auth-hi">Hi, ' + firstName(s.name) + '</span> <button type="button" class="auth-btn" data-signout>Sign out</button>';
+    slot.querySelector("[data-signout]").addEventListener("click", function () {
+      clearSession();
+      if (window.google && google.accounts && google.accounts.id) { try { google.accounts.id.disableAutoSelect(); } catch (e) {} }
+      window.location.reload();
+    });
+    return;
+  }
+
+  // Signed-out: a "Sign in" pill that opens the Google button, plus the auto popup.
+  slot.innerHTML = '<button type="button" class="auth-btn auth-signin" data-signin>Sign in</button>' +
+    '<div class="auth-pop" data-authpop hidden><p>Sign in to save your cart &amp; see your orders.</p><div id="gbtn-header"></div></div>';
+  var pop = slot.querySelector("[data-authpop]");
+  slot.querySelector("[data-signin]").addEventListener("click", function () {
+    pop.hidden = !pop.hidden;
+    if (!pop.hidden && window.google && google.accounts && google.accounts.id) {
+      try { google.accounts.id.renderButton(document.getElementById("gbtn-header"), { theme: "filled_black", size: "large", shape: "pill", text: "signin_with" }); } catch (e) {}
+      try { google.accounts.id.prompt(); } catch (e) {}
+    }
+  });
+
+  fetch("/api/config").then(function (r) { return r.json(); }).then(function (cfg) {
+    if (!cfg.googleClientId) return;
+    loadGis(function () {
+      google.accounts.id.initialize({ client_id: cfg.googleClientId, callback: onCredential, auto_select: false });
+      try { google.accounts.id.prompt(); } catch (e) {} // the "Sign in with Google" popup on arrival
+    });
+  }).catch(function () {});
+})();

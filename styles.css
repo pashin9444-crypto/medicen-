@@ -1153,6 +1153,23 @@ body.lt-editing [data-edit]:hover { background: rgba(154,118,59,0.18); }
 .lt-history-row .lt-h-sum { font-size: 0.9rem; color: var(--ink); }
 .lt-history-row .lt-eb-btn { background: var(--forest); border-color: var(--forest); color: var(--parchment); white-space: nowrap; }
 
+/* ---------- Header "Sign in with Google" ---------- */
+.auth-slot { display: inline-flex; align-items: center; gap: 0.5rem; margin-left: 0.5rem; position: relative; }
+.auth-btn {
+  font-family: var(--label); text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.72rem;
+  padding: 0.5rem 0.95rem; border-radius: 30px; border: 1.5px solid var(--bronze);
+  background: transparent; color: var(--forest-deep); cursor: pointer;
+}
+.auth-btn:hover { background: var(--bronze); color: var(--parchment); }
+.auth-hi { font-family: var(--label); text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.7rem; color: var(--forest-deep); }
+.auth-pop {
+  position: absolute; top: 130%; right: 0; z-index: 200; min-width: 230px;
+  background: var(--parchment); border: 1px solid rgba(122,95,44,0.3); border-radius: 10px;
+  padding: 1rem; box-shadow: var(--shadow-soft);
+}
+.auth-pop p { font-size: 0.85rem; color: var(--ink-soft); margin: 0 0 0.7rem; }
+@media (max-width: 860px) { .auth-pop { right: auto; left: 0; } .auth-slot { margin: 0.5rem 0.6rem; } }
+
 /* ---------- Retreat sign-up: location + room pickers ---------- */
 .retreat-opts { margin: 0 0 1.5rem; }
 .retreat-opts fieldset { border: none; padding: 0; margin: 0 0 1.25rem; }
