@@ -4,6 +4,7 @@
 // only the allowlisted emails, with a genuine Google token for THIS site, get in.
 
 const ADMINS = require("../lib/admins.js");
+const { GOOGLE_CLIENT_ID } = require("../lib/google.js");
 
 async function verifyGoogleToken(token, clientId) {
   // Low-volume admin logins → Google's tokeninfo endpoint is sufficient and needs
@@ -20,7 +21,7 @@ async function verifyGoogleToken(token, clientId) {
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") { res.setHeader("Allow", "POST"); return res.status(405).json({ error: "Method not allowed." }); }
 
-  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientId = GOOGLE_CLIENT_ID;
   if (!clientId) return res.status(500).json({ error: "Sign-in isn't configured yet (missing GOOGLE_CLIENT_ID)." });
 
   let body = req.body;
