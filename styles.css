@@ -1093,7 +1093,8 @@ a { color: var(--bronze-deep); text-decoration-thickness: 1px; text-underline-of
   font-family: "Source Sans 3", sans-serif; text-transform: uppercase; letter-spacing: 0.22em;
   font-size: 0.68rem; font-weight: 600; color: #c2761e; margin: 0;
 }
-.tw-logo { width: 100%; max-width: 340px; height: auto; display: block; }
+.tw-logo { width: 100%; max-width: 400px; height: auto; display: block; }
+.tw-cobrand-head { font-family: "Lora", Georgia, serif; font-size: 1.35rem; color: #4a6b5c; margin: 0.25rem 0 0; }
 .tw-lockup { display: flex; align-items: center; gap: 0.85rem; color: #4a6b5c; }
 .tw-icon { width: 46px; height: 46px; fill: currentColor; flex: none; }
 .tw-word {
