@@ -224,6 +224,37 @@
     var MONEY = { bottle: "bottleCents", collection: "collectionCents", classPrice: "classPriceCents" };
     function money(cents) { return "$" + (cents / 100).toFixed(2).replace(/\.00$/, ""); }
 
+    var PID = window.location.pathname.replace(/index\.html$/, "") || "/";
+    var FONTS = [
+      { label: "Default", value: "" },
+      { label: "Serif display", value: '"Cormorant Garamond", Georgia, serif' },
+      { label: "Serif body", value: '"EB Garamond", Georgia, serif' },
+      { label: "Sans (labels)", value: '"Jost", system-ui, sans-serif' },
+      { label: "Classic serif", value: "Georgia, 'Times New Roman', serif" },
+      { label: "Clean sans", value: "Arial, Helvetica, sans-serif" }
+    ];
+    function textNodes() {
+      var sel = "#main h1,#main h2,#main h3,#main h4,#main p,#main li,#main .lede,#main .tagline,#main .eyebrow,#main figcaption";
+      return Array.prototype.slice.call(document.querySelectorAll(sel)).filter(function (el) {
+        return el.children.length === 0 && el.textContent.trim().length > 0 &&
+          !el.hasAttribute("data-edit") && !el.closest(".lt-editbar") && !el.closest(".lt-history");
+      });
+    }
+    function applyTexts(texts) {
+      if (!texts) return;
+      var nodes = textNodes();
+      Object.keys(texts).forEach(function (key) {
+        if (key.indexOf(PID + "#t") !== 0) return;
+        var i = parseInt(key.slice((PID + "#t").length), 10);
+        var el = nodes[i]; if (!el) return;
+        var t = texts[key];
+        if (t.orig != null && el.textContent.trim() !== String(t.orig).trim()) return; // structure changed → skip (safe)
+        if (t.text != null) el.textContent = t.text;
+        if (t.color) el.style.color = t.color;
+        if (t.font) el.style.fontFamily = t.font;
+      });
+    }
+
     function apply(c) {
       document.querySelectorAll("[data-edit]").forEach(function (el) {
         var key = el.getAttribute("data-edit");
@@ -243,6 +274,7 @@
           a.setAttribute("href", u.pathname + "?" + u.searchParams.toString());
         } catch (e) {}
       });
+      if (c.texts) applyTexts(c.texts);
     }
 
     fetch("/api/content").then(function (r) { return r.json(); })
@@ -264,6 +296,8 @@
         '<span class="lt-eb-role">' + (who.role === "superadmin" ? "Super-admin" : "Admin") + "</span>" +
         '<button type="button" class="lt-eb-btn" data-eb-toggle>✎ Edit mode: off</button>' +
         '<button type="button" class="lt-eb-btn lt-eb-primary" data-eb-publish hidden>Publish</button>' +
+        '<input type="color" class="lt-eb-color" data-eb-color hidden title="Text colour">' +
+        '<select class="lt-eb-font" data-eb-font hidden aria-label="Font"></select>' +
         '<button type="button" class="lt-eb-btn" data-eb-history>History</button>' +
         '<span class="lt-eb-status" data-eb-status></span>' +
         '<button type="button" class="lt-eb-link" data-eb-signout>Sign out</button>';
@@ -313,13 +347,49 @@
 
       var editing = false, pending = {};
       var toggle = bar.querySelector("[data-eb-toggle]"), pub = bar.querySelector("[data-eb-publish]"), st = bar.querySelector("[data-eb-status]");
+      var colorCtl = bar.querySelector("[data-eb-color]"), fontCtl = bar.querySelector("[data-eb-font]");
+      FONTS.forEach(function (f) { var o = document.createElement("option"); o.value = f.value; o.textContent = f.label; fontCtl.appendChild(o); });
+
+      // ----- Click-in-place TEXT editing (+ colour & font) -----
+      var tNodes = textNodes();
+      var activeText = null;
+      function rgbToHex(rgb) { var m = (rgb || "").match(/\d+/g); if (!m || m.length < 3) return null; return "#" + m.slice(0, 3).map(function (x) { var h = parseInt(x, 10).toString(16); return h.length < 2 ? "0" + h : h; }).join(""); }
+      function stageText(el) {
+        var i = tNodes.indexOf(el); if (i < 0) return;
+        var key = PID + "#t" + i;
+        pending.texts = pending.texts || {};
+        var entry = pending.texts[key] || {};
+        entry.orig = el.dataset.ltOrig;
+        entry.text = el.textContent;
+        if (el.style.color) entry.color = el.style.color;
+        if (el.style.fontFamily) entry.font = el.style.fontFamily;
+        pending.texts[key] = entry;
+        st.textContent = "Edited — click Publish to make it live.";
+      }
+      tNodes.forEach(function (el) {
+        el.addEventListener("click", function () {
+          if (!editing) return;
+          if (el.dataset.ltOrig == null) el.dataset.ltOrig = el.textContent;
+          activeText = el;
+          el.setAttribute("contenteditable", "true");
+          el.focus();
+          try { colorCtl.value = rgbToHex(getComputedStyle(el).color) || "#33342c"; } catch (e) {}
+          fontCtl.value = el.style.fontFamily || "";
+        });
+        el.addEventListener("input", function () { if (editing) stageText(el); });
+        el.addEventListener("blur", function () { el.removeAttribute("contenteditable"); });
+      });
+      colorCtl.addEventListener("input", function () { if (activeText) { activeText.style.color = colorCtl.value; stageText(activeText); } });
+      fontCtl.addEventListener("change", function () { if (activeText) { activeText.style.fontFamily = fontCtl.value; stageText(activeText); } });
 
       toggle.addEventListener("click", function () {
         editing = !editing;
         document.body.classList.toggle("lt-editing", editing);
         toggle.textContent = "✎ Edit mode: " + (editing ? "on" : "off");
         pub.hidden = !editing;
-        st.textContent = editing ? (editables.length ? "Click a highlighted price or time to change it." : "Nothing editable here — try the Extracts or Classes page.") : "";
+        colorCtl.hidden = !editing; fontCtl.hidden = !editing;
+        tNodes.forEach(function (el) { el.classList.toggle("lt-tedit", editing); if (!editing) el.removeAttribute("contenteditable"); });
+        st.textContent = editing ? "Click any highlighted text, price, or time to change it." : "";
       });
       bar.querySelector("[data-eb-signout]").addEventListener("click", function () {
         try { localStorage.removeItem("lt-admin"); } catch (e) {}
