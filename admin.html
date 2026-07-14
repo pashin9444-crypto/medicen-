@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Living Terrain — Admin</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700&family=EB+Garamond:ital,wght@0,400;0,500&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://accounts.google.com/gsi/client" async></script>
+  <style>
+    .admin-wrap { max-width: 640px; margin: 0 auto; }
+    .admin-card { background: var(--parchment-deep); border: 1px solid rgba(122,95,44,0.22);
+      border-radius: 12px; padding: 2.25rem; box-shadow: var(--shadow-soft); }
+    .admin-status { margin-top: 1rem; min-height: 1.4em; }
+    .admin-status.err { color: #8f5836; }
+    .role-badge { display:inline-block; font-family:var(--label); text-transform:uppercase;
+      letter-spacing:0.1em; font-size:0.62rem; padding:0.25rem 0.6rem; border-radius:40px;
+      background:var(--forest); color:var(--parchment); margin-left:0.4rem; }
+    #gbtn { margin-top: 1.25rem; }
+  </style>
+</head>
+<body>
+  <main id="main">
+    <section class="page-hero">
+      <div class="container">
+        <p class="eyebrow">Living Terrain</p>
+        <h1>Edit Mode</h1>
+        <p class="lede">Sign in to update prices and event times. Access is limited to approved accounts.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container admin-wrap">
+        <div class="admin-card">
+          <!-- Signed-out -->
+          <div data-signed-out>
+            <h2 style="margin-top:0">Sign in</h2>
+            <p style="color:var(--ink-soft)">Use the Google account you were given access with.</p>
+            <div id="gbtn"></div>
+            <p class="admin-status" data-status role="status" aria-live="polite"></p>
+          </div>
+
+          <!-- Signed-in -->
+          <div data-signed-in hidden>
+            <h2 style="margin-top:0">Welcome, <span data-user-name>friend</span> <span class="role-badge" data-user-role></span></h2>
+            <p style="color:var(--ink-soft)">You're signed in as <strong data-user-email></strong>.</p>
+            <p>✅ Sign-in works. The editing tools (prices &amp; event times, with a <em>Publish</em> button) are being added next — you'll see them here.</p>
+            <p><button class="btn btn-outline" type="button" data-signout>Sign out</button></p>
+          </div>
+        </div>
+        <p style="text-align:center;margin-top:1.5rem"><a href="index.html">← Back to the site</a></p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      var statusEl = document.querySelector("[data-status]");
+      var signedOut = document.querySelector("[data-signed-out]");
+      var signedIn = document.querySelector("[data-signed-in]");
+
+      function setStatus(msg, isErr) {
+        statusEl.textContent = msg || "";
+        statusEl.className = "admin-status" + (isErr ? " err" : "");
+      }
+
+      function onCredential(resp) {
+        setStatus("Checking your access…", false);
+        fetch("/api/admin-verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ credential: resp.credential })
+        }).then(function (r) {
+          return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+        }).then(function (res) {
+          if (res.ok && res.d.ok) {
+            // Keep the signed-in identity for the editing tools (next stage).
+            try { sessionStorage.setItem("lt-admin", JSON.stringify({ email: res.d.email, role: res.d.role, token: resp.credential })); } catch (e) {}
+            document.querySelector("[data-user-name]").textContent = res.d.name || res.d.email;
+            document.querySelector("[data-user-email]").textContent = res.d.email;
+            document.querySelector("[data-user-role]").textContent = res.d.role === "superadmin" ? "Super-admin" : "Admin";
+            signedOut.hidden = true; signedIn.hidden = false;
+          } else {
+            setStatus(res.d.error || "Sorry, that account isn't allowed.", true);
+          }
+        }).catch(function () { setStatus("Something went wrong verifying your sign-in. Please try again.", true); });
+      }
+
+      function initGoogle(clientId) {
+        if (!clientId) { setStatus("Sign-in isn't fully set up yet (no Google Client ID). Add GOOGLE_CLIENT_ID in Vercel.", true); return; }
+        var tries = 0;
+        (function waitForGis() {
+          if (window.google && google.accounts && google.accounts.id) {
+            google.accounts.id.initialize({ client_id: clientId, callback: onCredential });
+            google.accounts.id.renderButton(document.getElementById("gbtn"), { theme: "filled_black", size: "large", text: "signin_with", shape: "pill" });
+          } else if (tries++ < 40) {
+            setTimeout(waitForGis, 100);
+          } else {
+            setStatus("Couldn't load Google sign-in. Check your connection and refresh.", true);
+          }
+        })();
+      }
+
+      document.querySelector("[data-signout]").addEventListener("click", function () {
+        try { sessionStorage.removeItem("lt-admin"); } catch (e) {}
+        if (window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect();
+        signedIn.hidden = true; signedOut.hidden = false; setStatus("Signed out.", false);
+      });
+
+      fetch("/api/config").then(function (r) { return r.json(); })
+        .then(function (cfg) { initGoogle(cfg.googleClientId); })
+        .catch(function () { setStatus("Couldn't load sign-in settings. Please refresh.", true); });
+    })();
+  </script>
+</body>
+</html>
