@@ -1,0 +1,35 @@
+// GET  /api/content            → public: current editable content (prices)
+// POST /api/content { credential, content } → admin only: save + publish
+
+const { getContent, saveContent } = require("../lib/content.js");
+const { verifyGoogle, isAdmin } = require("../lib/auth.js");
+
+module.exports = async function handler(req, res) {
+  if (req.method === "GET") {
+    const c = await getContent();
+    // no-cache so edits show immediately
+    res.setHeader("Cache-Control", "no-store");
+    return res.status(200).json(c);
+  }
+
+  if (req.method === "POST") {
+    let body = req.body;
+    if (typeof body === "string") { try { body = JSON.parse(body); } catch (e) { body = {}; } }
+    body = body || {};
+
+    const user = await verifyGoogle(body.credential);
+    if (!user || !isAdmin(user.role)) {
+      return res.status(403).json({ error: "You're not authorized to publish changes." });
+    }
+    try {
+      const saved = await saveContent(body.content || {}, user.email);
+      return res.status(200).json({ ok: true, content: saved });
+    } catch (e) {
+      console.error("content save error", e);
+      return res.status(500).json({ error: "Could not save your changes. Please try again." });
+    }
+  }
+
+  res.setHeader("Allow", "GET, POST");
+  return res.status(405).json({ error: "Method not allowed." });
+};

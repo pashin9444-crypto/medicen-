@@ -219,6 +219,22 @@
 
   updateCartBadges();
 
+  /* ---------- Live prices from Edit Mode (falls back to page defaults) ---------- */
+  (function syncPrices() {
+    if (!document.querySelector('[data-price-kind],[data-add-to-cart],[data-buy-now]')) return;
+    fetch("/api/content").then(function (r) { return r.json(); }).then(function (c) {
+      if (!c || typeof c.bottleCents !== "number") return;
+      function money(cents) { return "$" + (cents / 100).toFixed(2).replace(/\.00$/, ""); }
+      document.querySelectorAll('[data-price-kind="bottle"]').forEach(function (el) { el.textContent = money(c.bottleCents); });
+      document.querySelectorAll('[data-price-kind="collection"]').forEach(function (el) { el.textContent = money(c.collectionCents); });
+      document.querySelectorAll("[data-add-to-cart],[data-buy-now]").forEach(function (btn) {
+        var id = btn.getAttribute("data-id");
+        var cents = id === "complete-collection" ? c.collectionCents : c.bottleCents;
+        btn.setAttribute("data-price", String(cents / 100));
+      });
+    }).catch(function () { /* keep the prices already in the page */ });
+  })();
+
   /* ---------- Add to cart / Buy now (products page) ---------- */
   function itemFrom(btn) {
     return {

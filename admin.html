@@ -21,6 +21,15 @@
       letter-spacing:0.1em; font-size:0.62rem; padding:0.25rem 0.6rem; border-radius:40px;
       background:var(--forest); color:var(--parchment); margin-left:0.4rem; }
     #gbtn { margin-top: 1.25rem; }
+    .linklike { background:none; border:none; padding:0; color:var(--bronze-deep); cursor:pointer; font:inherit; text-decoration:underline; }
+    .edit-panel { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(122,95,44,0.22); }
+    .hint { font-size: 0.85rem; color: var(--ink-soft); }
+    .efield { margin: 1rem 0; }
+    .efield label { display:block; font-family:var(--label); text-transform:uppercase; letter-spacing:0.08em; font-size:0.72rem; color:var(--forest-deep); margin-bottom:0.4rem; }
+    .dollar { display:inline-flex; align-items:center; gap:0.3rem; border:1px solid rgba(122,95,44,0.35); border-radius:var(--radius); background:var(--parchment); padding:0.2rem 0.7rem; }
+    .dollar span { color:var(--ink-soft); }
+    .dollar input { border:none; background:transparent; font-family:var(--body); font-size:1.1rem; color:var(--ink); width:7rem; padding:0.5rem 0; }
+    .dollar input:focus { outline:none; }
   </style>
 </head>
 <body>
@@ -47,9 +56,27 @@
           <!-- Signed-in -->
           <div data-signed-in hidden>
             <h2 style="margin-top:0">Welcome, <span data-user-name>friend</span> <span class="role-badge" data-user-role></span></h2>
-            <p style="color:var(--ink-soft)">You're signed in as <strong data-user-email></strong>.</p>
-            <p>✅ Sign-in works. The editing tools (prices &amp; event times, with a <em>Publish</em> button) are being added next — you'll see them here.</p>
-            <p><button class="btn btn-outline" type="button" data-signout>Sign out</button></p>
+            <p style="color:var(--ink-soft)">Signed in as <strong data-user-email></strong>. <button class="linklike" type="button" data-signout>Sign out</button></p>
+
+            <div class="edit-panel">
+              <h3 style="margin-bottom:0.25rem">Prices</h3>
+              <p class="hint" style="margin-top:0">Change a price and click <strong>Publish</strong>. It updates the website and what customers are charged, right away.</p>
+
+              <div class="efield">
+                <label for="e-bottle">Single bottle price</label>
+                <div class="dollar"><span>$</span><input type="number" id="e-bottle" min="0" step="0.01" data-edit-bottle></div>
+                <span class="hint">Applies to all five extracts.</span>
+              </div>
+
+              <div class="efield">
+                <label for="e-collection">Complete Collection price (all 5)</label>
+                <div class="dollar"><span>$</span><input type="number" id="e-collection" min="0" step="0.01" data-edit-collection></div>
+              </div>
+
+              <button class="btn btn-primary" type="button" data-publish>Publish changes</button>
+              <p class="admin-status" data-edit-status role="status" aria-live="polite"></p>
+              <p class="hint" data-last-updated></p>
+            </div>
           </div>
         </div>
         <p style="text-align:center;margin-top:1.5rem"><a href="index.html">← Back to the site</a></p>
@@ -84,6 +111,7 @@
             document.querySelector("[data-user-email]").textContent = res.d.email;
             document.querySelector("[data-user-role]").textContent = res.d.role === "superadmin" ? "Super-admin" : "Admin";
             signedOut.hidden = true; signedIn.hidden = false;
+            loadContent();
           } else {
             setStatus(res.d.error || "Sorry, that account isn't allowed.", true);
           }
@@ -104,6 +132,34 @@
           }
         })();
       }
+
+      // ---- Edit Mode: load + publish prices ----
+      var editStatus = document.querySelector("[data-edit-status]");
+      function token() { try { return (JSON.parse(sessionStorage.getItem("lt-admin")) || {}).token || ""; } catch (e) { return ""; } }
+      function fmtWhen(ts, who) { if (!ts) return ""; try { return "Last published " + new Date(ts).toLocaleString() + (who ? " by " + who : ""); } catch (e) { return ""; } }
+      function fillContent(c) {
+        document.querySelector("[data-edit-bottle]").value = (c.bottleCents / 100).toFixed(2);
+        document.querySelector("[data-edit-collection]").value = (c.collectionCents / 100).toFixed(2);
+        document.querySelector("[data-last-updated]").textContent = fmtWhen(c.updatedAt, c.updatedBy);
+      }
+      function loadContent() {
+        fetch("/api/content").then(function (r) { return r.json(); }).then(fillContent).catch(function () {});
+      }
+      function toCents(v) { var n = Math.round(parseFloat(v) * 100); return (isFinite(n) && n >= 0) ? n : null; }
+      document.querySelector("[data-publish]").addEventListener("click", function () {
+        var bottle = toCents(document.querySelector("[data-edit-bottle]").value);
+        var coll = toCents(document.querySelector("[data-edit-collection]").value);
+        if (bottle === null || coll === null) { editStatus.className = "admin-status err"; editStatus.textContent = "Please enter valid dollar amounts."; return; }
+        editStatus.className = "admin-status"; editStatus.textContent = "Publishing…";
+        fetch("/api/content", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ credential: token(), content: { bottleCents: bottle, collectionCents: coll } })
+        }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+          .then(function (res) {
+            if (res.ok && res.d.ok) { fillContent(res.d.content); editStatus.className = "admin-status"; editStatus.textContent = "✅ Published! Your changes are live."; }
+            else { editStatus.className = "admin-status err"; editStatus.textContent = (res.d.error || "Could not publish.") + (/authorized/i.test(res.d.error || "") ? " Try signing out and back in." : ""); }
+          }).catch(function () { editStatus.className = "admin-status err"; editStatus.textContent = "Something went wrong. Please try again."; });
+      });
 
       document.querySelector("[data-signout]").addEventListener("click", function () {
         try { sessionStorage.removeItem("lt-admin"); } catch (e) {}

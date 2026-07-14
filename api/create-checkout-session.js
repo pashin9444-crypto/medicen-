@@ -6,6 +6,7 @@
 const Stripe = require("stripe");
 const { PRODUCTS } = require("../products.js");
 const { buildLineItems } = require("../lib/orders.js");
+const { getContent, pricedProducts } = require("../lib/content.js");
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
@@ -32,9 +33,13 @@ module.exports = async function handler(req, res) {
     requested = [{ id: String(body.id), qty: 1 }];
   }
 
+  // Price from the edited content (falls back to products.js if the DB is empty/down).
+  const content = await getContent();
+  const catalog = pricedProducts(content);
+
   let line_items;
   try {
-    line_items = buildLineItems(requested, PRODUCTS);
+    line_items = buildLineItems(requested, catalog);
   } catch (e) {
     return res.status(e.status || 400).json({ error: e.message });
   }
