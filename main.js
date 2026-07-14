@@ -264,9 +264,52 @@
         '<span class="lt-eb-role">' + (who.role === "superadmin" ? "Super-admin" : "Admin") + "</span>" +
         '<button type="button" class="lt-eb-btn" data-eb-toggle>✎ Edit mode: off</button>' +
         '<button type="button" class="lt-eb-btn lt-eb-primary" data-eb-publish hidden>Publish</button>' +
+        '<button type="button" class="lt-eb-btn" data-eb-history>History</button>' +
         '<span class="lt-eb-status" data-eb-status></span>' +
         '<button type="button" class="lt-eb-link" data-eb-signout>Sign out</button>';
       document.body.appendChild(bar);
+
+      // ----- Change log + revert -----
+      var histWrap = document.createElement("div");
+      histWrap.className = "lt-history"; histWrap.hidden = true;
+      histWrap.innerHTML = '<div class="lt-history-box"><div class="lt-history-head"><strong>Change history</strong><button type="button" class="lt-eb-link" data-hist-close>Close</button></div><div class="lt-history-list" data-hist-list>Loading…</div></div>';
+      document.body.appendChild(histWrap);
+      function fmtSnap(s) {
+        var when = s.updatedAt ? new Date(s.updatedAt).toLocaleString() : "—";
+        var by = s.updatedBy || "—";
+        var summary = "bottle $" + (s.bottleCents / 100) + " · collection $" + (s.collectionCents / 100) + " · class $" + (s.classPriceCents / 100);
+        return { when: when, by: by, summary: summary };
+      }
+      bar.querySelector("[data-eb-history]").addEventListener("click", function () {
+        histWrap.hidden = false;
+        var list = histWrap.querySelector("[data-hist-list]");
+        list.textContent = "Loading…";
+        fetch("/api/content", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ credential: who.token, action: "history" }) })
+          .then(function (r) { return r.json(); }).then(function (d) {
+            if (!d.ok || !d.history || !d.history.length) { list.textContent = "No saved versions yet."; return; }
+            list.innerHTML = "";
+            d.history.forEach(function (s, i) {
+              var f = fmtSnap(s);
+              var row = document.createElement("div"); row.className = "lt-history-row";
+              row.innerHTML = '<div><div class="lt-h-when">' + f.when + (i === 0 ? " · current" : "") + '</div><div class="lt-h-sum">' + f.summary + ' — <em>' + f.by + '</em></div></div>';
+              if (i !== 0) {
+                var b = document.createElement("button"); b.type = "button"; b.className = "lt-eb-btn"; b.textContent = "Revert to this";
+                b.addEventListener("click", function () {
+                  if (!window.confirm("Revert the site to this version?")) return;
+                  b.textContent = "Reverting…";
+                  fetch("/api/content", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ credential: who.token, action: "revert", ts: s.updatedAt }) })
+                    .then(function (r) { return r.json(); }).then(function (res) {
+                      if (res.ok && res.content) { apply(res.content); histWrap.hidden = true; st.textContent = "✅ Reverted — live now."; }
+                      else { b.textContent = "Failed"; }
+                    }).catch(function () { b.textContent = "Failed"; });
+                });
+                row.appendChild(b);
+              }
+              list.appendChild(row);
+            });
+          }).catch(function () { list.textContent = "Couldn't load history."; });
+      });
+      histWrap.querySelector("[data-hist-close]").addEventListener("click", function () { histWrap.hidden = true; });
 
       var editing = false, pending = {};
       var toggle = bar.querySelector("[data-eb-toggle]"), pub = bar.querySelector("[data-eb-publish]"), st = bar.querySelector("[data-eb-status]");

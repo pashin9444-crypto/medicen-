@@ -1144,6 +1144,14 @@ a { color: var(--bronze-deep); text-decoration-thickness: 1px; text-underline-of
 body.lt-editing { padding-bottom: 64px; }
 body.lt-editing [data-edit] { outline: 2px dashed var(--bronze); outline-offset: 2px; border-radius: 3px; cursor: pointer; }
 body.lt-editing [data-edit]:hover { background: rgba(154,118,59,0.18); }
+.lt-history { position: fixed; inset: 0; z-index: 600; background: rgba(37,48,31,0.5); display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.lt-history-box { background: var(--parchment); border-radius: 12px; max-width: 560px; width: 100%; max-height: 80vh; overflow: auto; padding: 1.25rem 1.5rem; box-shadow: var(--shadow-lift); }
+.lt-history-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+.lt-history-head .lt-eb-link { color: var(--bronze-deep); }
+.lt-history-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 0.7rem 0; border-bottom: 1px solid rgba(122,95,44,0.16); }
+.lt-history-row .lt-h-when { font-family: var(--label); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--bronze-deep); }
+.lt-history-row .lt-h-sum { font-size: 0.9rem; color: var(--ink); }
+.lt-history-row .lt-eb-btn { background: var(--forest); border-color: var(--forest); color: var(--parchment); white-space: nowrap; }
 
 /* ---------- Retreat sign-up: location + room pickers ---------- */
 .retreat-opts { margin: 0 0 1.5rem; }
