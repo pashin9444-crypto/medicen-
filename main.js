@@ -219,20 +219,100 @@
 
   updateCartBadges();
 
-  /* ---------- Live prices from Edit Mode (falls back to page defaults) ---------- */
-  (function syncPrices() {
-    if (!document.querySelector('[data-price-kind],[data-add-to-cart],[data-buy-now]')) return;
-    fetch("/api/content").then(function (r) { return r.json(); }).then(function (c) {
-      if (!c || typeof c.bottleCents !== "number") return;
-      function money(cents) { return "$" + (cents / 100).toFixed(2).replace(/\.00$/, ""); }
-      document.querySelectorAll('[data-price-kind="bottle"]').forEach(function (el) { el.textContent = money(c.bottleCents); });
-      document.querySelectorAll('[data-price-kind="collection"]').forEach(function (el) { el.textContent = money(c.collectionCents); });
+  /* ---------- Live content + admin inline Edit Mode ---------- */
+  (function () {
+    var MONEY = { bottle: "bottleCents", collection: "collectionCents", classPrice: "classPriceCents" };
+    function money(cents) { return "$" + (cents / 100).toFixed(2).replace(/\.00$/, ""); }
+
+    function apply(c) {
+      document.querySelectorAll("[data-edit]").forEach(function (el) {
+        var key = el.getAttribute("data-edit");
+        if (MONEY[key]) el.textContent = money(c[MONEY[key]]);
+        else if (c.classWhen && c.classWhen[key] != null) el.textContent = c.classWhen[key];
+      });
       document.querySelectorAll("[data-add-to-cart],[data-buy-now]").forEach(function (btn) {
         var id = btn.getAttribute("data-id");
         var cents = id === "complete-collection" ? c.collectionCents : c.bottleCents;
         btn.setAttribute("data-price", String(cents / 100));
       });
-    }).catch(function () { /* keep the prices already in the page */ });
+      document.querySelectorAll("[data-classlink]").forEach(function (a) {
+        a.textContent = "Sign up · " + money(c.classPriceCents);
+        try {
+          var u = new URL(a.getAttribute("href"), window.location.origin);
+          u.searchParams.set("price", String(c.classPriceCents / 100));
+          a.setAttribute("href", u.pathname + "?" + u.searchParams.toString());
+        } catch (e) {}
+      });
+    }
+
+    fetch("/api/content").then(function (r) { return r.json(); })
+      .then(function (c) { if (c && typeof c.bottleCents === "number") apply(c); initEdit(); })
+      .catch(function () { initEdit(); });
+
+    function admin() {
+      try { var a = JSON.parse(localStorage.getItem("lt-admin") || "null"); return (a && (a.role === "admin" || a.role === "superadmin")) ? a : null; }
+      catch (e) { return null; }
+    }
+
+    function initEdit() {
+      var who = admin();
+      if (!who) return;
+      var editables = document.querySelectorAll("[data-edit]");
+      var bar = document.createElement("div");
+      bar.className = "lt-editbar";
+      bar.innerHTML =
+        '<span class="lt-eb-role">' + (who.role === "superadmin" ? "Super-admin" : "Admin") + "</span>" +
+        '<button type="button" class="lt-eb-btn" data-eb-toggle>✎ Edit mode: off</button>' +
+        '<button type="button" class="lt-eb-btn lt-eb-primary" data-eb-publish hidden>Publish</button>' +
+        '<span class="lt-eb-status" data-eb-status></span>' +
+        '<button type="button" class="lt-eb-link" data-eb-signout>Sign out</button>';
+      document.body.appendChild(bar);
+
+      var editing = false, pending = {};
+      var toggle = bar.querySelector("[data-eb-toggle]"), pub = bar.querySelector("[data-eb-publish]"), st = bar.querySelector("[data-eb-status]");
+
+      toggle.addEventListener("click", function () {
+        editing = !editing;
+        document.body.classList.toggle("lt-editing", editing);
+        toggle.textContent = "✎ Edit mode: " + (editing ? "on" : "off");
+        pub.hidden = !editing;
+        st.textContent = editing ? (editables.length ? "Click a highlighted price or time to change it." : "Nothing editable here — try the Extracts or Classes page.") : "";
+      });
+      bar.querySelector("[data-eb-signout]").addEventListener("click", function () {
+        try { localStorage.removeItem("lt-admin"); } catch (e) {}
+        window.location.reload();
+      });
+
+      editables.forEach(function (el) {
+        el.addEventListener("click", function () {
+          if (!editing) return;
+          var key = el.getAttribute("data-edit"), isMoney = !!MONEY[key];
+          var cur = el.textContent.replace(/[$,]/g, "").trim();
+          var val = window.prompt(isMoney ? "New price, in dollars:" : "New date / time:", cur);
+          if (val === null) return;
+          if (isMoney) {
+            var n = Math.round(parseFloat(val) * 100);
+            if (!isFinite(n) || n < 0) { st.textContent = "Please enter a valid number."; return; }
+            pending[MONEY[key]] = n; el.textContent = money(n);
+            if (key === "classPrice") document.querySelectorAll("[data-classlink]").forEach(function (a) { a.textContent = "Sign up · " + money(n); });
+          } else {
+            pending.classWhen = pending.classWhen || {}; pending.classWhen[key] = val.trim(); el.textContent = val.trim();
+          }
+          st.textContent = "Edited — click Publish to make it live.";
+        });
+      });
+
+      pub.addEventListener("click", function () {
+        if (!Object.keys(pending).length) { st.textContent = "No changes to publish yet."; return; }
+        st.textContent = "Publishing…";
+        fetch("/api/content", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ credential: who.token, content: pending }) })
+          .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+          .then(function (res) {
+            if (res.ok && res.d.ok) { pending = {}; apply(res.d.content); st.textContent = "✅ Published — live now."; }
+            else { st.textContent = (res.d.error || "Couldn't publish.") + (/authorized/i.test(res.d.error || "") ? " Please sign in again at /admin.html." : ""); }
+          }).catch(function () { st.textContent = "Error publishing. Please try again."; });
+      });
+    }
   })();
 
   /* ---------- Add to cart / Buy now (products page) ---------- */

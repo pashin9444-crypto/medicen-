@@ -106,7 +106,7 @@
         }).then(function (res) {
           if (res.ok && res.d.ok) {
             // Keep the signed-in identity for the editing tools (next stage).
-            try { sessionStorage.setItem("lt-admin", JSON.stringify({ email: res.d.email, role: res.d.role, token: resp.credential })); } catch (e) {}
+            try { localStorage.setItem("lt-admin", JSON.stringify({ email: res.d.email, role: res.d.role, token: resp.credential })); } catch (e) {}
             document.querySelector("[data-user-name]").textContent = res.d.name || res.d.email;
             document.querySelector("[data-user-email]").textContent = res.d.email;
             document.querySelector("[data-user-role]").textContent = res.d.role === "superadmin" ? "Super-admin" : "Admin";
@@ -135,7 +135,7 @@
 
       // ---- Edit Mode: load + publish prices ----
       var editStatus = document.querySelector("[data-edit-status]");
-      function token() { try { return (JSON.parse(sessionStorage.getItem("lt-admin")) || {}).token || ""; } catch (e) { return ""; } }
+      function token() { try { return (JSON.parse(localStorage.getItem("lt-admin")) || {}).token || ""; } catch (e) { return ""; } }
       function fmtWhen(ts, who) { if (!ts) return ""; try { return "Last published " + new Date(ts).toLocaleString() + (who ? " by " + who : ""); } catch (e) { return ""; } }
       function fillContent(c) {
         document.querySelector("[data-edit-bottle]").value = (c.bottleCents / 100).toFixed(2);
@@ -162,7 +162,7 @@
       });
 
       document.querySelector("[data-signout]").addEventListener("click", function () {
-        try { sessionStorage.removeItem("lt-admin"); } catch (e) {}
+        try { localStorage.removeItem("lt-admin"); } catch (e) {}
         if (window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect();
         signedIn.hidden = true; signedOut.hidden = false; setStatus("Signed out.", false);
       });

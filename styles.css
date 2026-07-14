@@ -1119,6 +1119,31 @@ a { color: var(--bronze-deep); text-decoration-thickness: 1px; text-underline-of
 .bg-forest .pillar p { color: var(--ink-soft); }
 .bg-forest .pillar .card-link { color: var(--bronze-deep); }
 
+/* ---------- Admin inline Edit Mode ---------- */
+.lt-editbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 500;
+  display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;
+  background: var(--forest-deep); color: var(--parchment);
+  padding: 0.6rem 1rem; font-family: var(--label); font-size: 0.8rem;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.28);
+}
+.lt-editbar .lt-eb-role {
+  text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.6rem;
+  background: var(--bronze); color: #fff; padding: 0.25rem 0.6rem; border-radius: 40px;
+}
+.lt-eb-btn {
+  background: rgba(244,238,224,0.15); color: var(--parchment);
+  border: 1px solid rgba(244,238,224,0.4); border-radius: 40px;
+  padding: 0.45rem 1rem; cursor: pointer; font: inherit;
+}
+.lt-eb-btn:hover { background: rgba(244,238,224,0.28); }
+.lt-eb-primary { background: var(--bronze); border-color: var(--bronze); }
+.lt-eb-status { flex: 1; min-width: 160px; color: #e6ddc9; font-family: var(--body); font-style: italic; }
+.lt-eb-link { background: none; border: none; color: #e6ddc9; text-decoration: underline; cursor: pointer; font: inherit; }
+body.lt-editing { padding-bottom: 64px; }
+body.lt-editing [data-edit] { outline: 2px dashed var(--bronze); outline-offset: 2px; border-radius: 3px; cursor: pointer; }
+body.lt-editing [data-edit]:hover { background: rgba(154,118,59,0.18); }
+
 /* ---------- Retreat sign-up: location + room pickers ---------- */
 .retreat-opts { margin: 0 0 1.5rem; }
 .retreat-opts fieldset { border: none; padding: 0; margin: 0 0 1.25rem; }
