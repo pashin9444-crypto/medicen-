@@ -27,6 +27,7 @@ module.exports = async function handler(req, res) {
         return res.status(200).json({ ok: true, history: history });
       }
       if (body.action === "revert") {
+        if (user.role !== "superadmin") return res.status(403).json({ error: "Only a super-admin can revert changes." });
         const restored = await revertTo(body.ts, user.email);
         if (!restored) return res.status(404).json({ error: "That version couldn't be found." });
         return res.status(200).json({ ok: true, content: restored });

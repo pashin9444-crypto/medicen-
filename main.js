@@ -281,6 +281,18 @@
       });
     }
 
+    function logoEls() { return Array.prototype.slice.call(document.querySelectorAll("img.brand-logo, .footer-logo img")); }
+    function mainImgs() { return Array.prototype.slice.call(document.querySelectorAll("#main img")); }
+    function applyImages(images) {
+      if (!images) return;
+      if (images["site.logo"] && images["site.logo"].url) logoEls().forEach(function (el) { el.src = images["site.logo"].url; });
+      mainImgs().forEach(function (el, i) {
+        var o = images[PID + "#img" + i]; if (!o || !o.url) return;
+        if (o.orig != null && el.getAttribute("src") !== o.orig) return; // structure changed → skip (safe)
+        el.src = o.url;
+      });
+    }
+
     function apply(c) {
       document.querySelectorAll("[data-edit]").forEach(function (el) {
         var key = el.getAttribute("data-edit");
@@ -301,6 +313,7 @@
         } catch (e) {}
       });
       if (c.texts) applyTexts(c.texts);
+      if (c.images) applyImages(c.images);
     }
 
     fetch("/api/content").then(function (r) { return r.json(); })
@@ -352,7 +365,7 @@
               var f = fmtSnap(s);
               var row = document.createElement("div"); row.className = "lt-history-row";
               row.innerHTML = '<div><div class="lt-h-when">' + f.when + (i === 0 ? " · current" : "") + '</div><div class="lt-h-sum">' + f.summary + ' — <em>' + f.by + '</em></div></div>';
-              if (i !== 0) {
+              if (i !== 0 && who.role === "superadmin") {
                 var b = document.createElement("button"); b.type = "button"; b.className = "lt-eb-btn"; b.textContent = "Revert to this";
                 b.addEventListener("click", function () {
                   if (!window.confirm("Revert the site to this version?")) return;
@@ -408,6 +421,41 @@
       colorCtl.addEventListener("input", function () { if (activeText) { activeText.style.color = colorCtl.value; stageText(activeText); } });
       fontCtl.addEventListener("change", function () { if (activeText) { activeText.style.fontFamily = fontCtl.value; stageText(activeText); } });
 
+      // ----- Click an image (or the logo) to replace it -----
+      var imgEls = logoEls().map(function (el) { return { el: el, key: "site.logo" }; })
+        .concat(mainImgs().map(function (el, i) { return { el: el, key: PID + "#img" + i }; }));
+      var fileInput = document.createElement("input"); fileInput.type = "file"; fileInput.accept = "image/*"; fileInput.style.display = "none";
+      document.body.appendChild(fileInput);
+      var uploadTarget = null;
+      imgEls.forEach(function (o) {
+        o.el.addEventListener("click", function (e) {
+          if (!editing) return;
+          e.preventDefault();
+          uploadTarget = o;
+          if (o.el.dataset.ltImgOrig == null) o.el.dataset.ltImgOrig = o.el.getAttribute("src");
+          fileInput.value = ""; fileInput.click();
+        });
+      });
+      fileInput.addEventListener("change", function () {
+        var f = fileInput.files && fileInput.files[0]; if (!f || !uploadTarget) return;
+        if (f.size > 3 * 1024 * 1024) { st.textContent = "That image is too big — keep it under 3 MB."; return; }
+        st.textContent = "Uploading image…";
+        var reader = new FileReader();
+        reader.onload = function () {
+          fetch("/api/admin-upload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ credential: who.token, dataUrl: reader.result }) })
+            .then(function (r) { return r.json(); }).then(function (d) {
+              if (d.ok && d.url) {
+                var o = uploadTarget;
+                if (o.key === "site.logo") logoEls().forEach(function (el) { el.src = d.url; }); else o.el.src = d.url;
+                pending.images = pending.images || {};
+                pending.images[o.key] = { orig: o.el.dataset.ltImgOrig, url: d.url };
+                st.textContent = "Image added — click Publish to make it live.";
+              } else { st.textContent = d.error || "Upload failed."; }
+            }).catch(function () { st.textContent = "Upload failed. Please try again."; });
+        };
+        reader.readAsDataURL(f);
+      });
+
       toggle.addEventListener("click", function () {
         editing = !editing;
         document.body.classList.toggle("lt-editing", editing);
@@ -415,7 +463,8 @@
         pub.hidden = !editing;
         colorCtl.hidden = !editing; fontCtl.hidden = !editing;
         tNodes.forEach(function (el) { el.classList.toggle("lt-tedit", editing); if (!editing) el.removeAttribute("contenteditable"); });
-        st.textContent = editing ? "Click any highlighted text, price, or time to change it." : "";
+        imgEls.forEach(function (o) { o.el.classList.toggle("lt-iedit", editing); });
+        st.textContent = editing ? "Click any highlighted text, price, time, or image to change it." : "";
       });
       bar.querySelector("[data-eb-signout]").addEventListener("click", function () {
         try { localStorage.removeItem("lt-admin"); } catch (e) {}
