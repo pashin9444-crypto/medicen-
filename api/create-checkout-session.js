@@ -69,6 +69,10 @@ module.exports = async function handler(req, res) {
       order: requested.map(function (r) { return r.id + "×" + (parseInt(r.qty, 10) || 1); }).join(", "),
     },
   };
+  // If a signed-in customer, pre-fill their email so the order shows in "My orders".
+  if (body.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(body.email))) {
+    baseSession.customer_email = String(body.email);
+  }
 
   try {
     let session;

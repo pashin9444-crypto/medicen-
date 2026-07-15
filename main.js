@@ -259,11 +259,15 @@
       { label: "Classic serif", value: "Georgia, 'Times New Roman', serif" },
       { label: "Clean sans", value: "Arial, Helvetica, sans-serif" }
     ];
+    var TEXT_SEL = "h1,h2,h3,h4,h5,h6,p,li,td,th,dt,dd,blockquote,figcaption,.lede,.tagline,.eyebrow,.m-name,.m-eyebrow,.season-when,.time,.act,.ro-name,.ro-sub";
     function textNodes() {
-      var sel = "#main h1,#main h2,#main h3,#main h4,#main p,#main li,#main .lede,#main .tagline,#main .eyebrow,#main figcaption";
-      return Array.prototype.slice.call(document.querySelectorAll(sel)).filter(function (el) {
-        return el.children.length === 0 && el.textContent.trim().length > 0 &&
-          !el.hasAttribute("data-edit") && !el.closest(".lt-editbar") && !el.closest(".lt-history");
+      var scoped = "#main " + TEXT_SEL.split(",").join(",#main ");
+      return Array.prototype.slice.call(document.querySelectorAll(scoped)).filter(function (el) {
+        if (el.textContent.trim().length === 0) return false;
+        if (el.hasAttribute("data-edit") || el.querySelector("[data-edit]")) return false; // don't clobber prices/times
+        if (el.closest(".lt-editbar") || el.closest(".lt-history")) return false;
+        if (el.querySelector(TEXT_SEL)) return false; // only the innermost text block (keeps structure intact)
+        return true;
       });
     }
     function applyTexts(texts) {
@@ -275,7 +279,7 @@
         var el = nodes[i]; if (!el) return;
         var t = texts[key];
         if (t.orig != null && el.textContent.trim() !== String(t.orig).trim()) return; // structure changed → skip (safe)
-        if (t.text != null) el.textContent = t.text;
+        if (t.text != null) el.innerHTML = t.text;
         if (t.color) el.style.color = t.color;
         if (t.font) el.style.fontFamily = t.font;
       });
@@ -399,7 +403,7 @@
         pending.texts = pending.texts || {};
         var entry = pending.texts[key] || {};
         entry.orig = el.dataset.ltOrig;
-        entry.text = el.textContent;
+        entry.text = el.innerHTML;
         if (el.style.color) entry.color = el.style.color;
         if (el.style.fontFamily) entry.font = el.style.fontFamily;
         pending.texts[key] = entry;
@@ -539,6 +543,8 @@
   // Send the shopper to Stripe's hosted checkout. Payload is { id } for a single
   // product or { items:[{id,qty}] } for the cart — never any price (server prices it).
   function startCheckout(payload, btn) {
+    var sess = currentSession();
+    if (sess && sess.email) payload.email = sess.email; // attribute the order to the signed-in customer
     var orig = btn ? btn.textContent : "";
     if (btn) { btn.disabled = true; btn.textContent = "Redirecting…"; }
     return fetch("/api/create-checkout-session", {
