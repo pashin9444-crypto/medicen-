@@ -96,6 +96,17 @@ async function handler(req, res) {
       if (!m.to) continue;
       await sendBrevoEmail(m);
     }
+
+    // Record the order so a signed-in customer can see it in "My orders" (best-effort).
+    try {
+      const kv = require("../lib/kv.js");
+      if (kv.configured && buyerEmail) {
+        await kv.kvListPush("orders:" + String(buyerEmail).toLowerCase(), {
+          items: items, totalCents: session.amount_total || 0,
+          ship: { name: shipName, address: shipAddress }, date: Date.now(),
+        });
+      }
+    } catch (e) { console.error("order record failed", e); }
   } catch (err) {
     // Log but still 200 so Stripe doesn't retry forever on our internal issue.
     console.error("Error handling checkout.session.completed:", err);

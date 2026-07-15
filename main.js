@@ -147,6 +147,11 @@
   }
   function emailOk(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
+  var cartRerender = null;
+  function currentSession() {
+    try { var s = JSON.parse(localStorage.getItem("lt-admin") || "null"); if (s && s.exp && s.exp < Date.now()) return null; return s; }
+    catch (e) { return null; }
+  }
   function readCart() {
     try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; }
     catch (e) { return []; }
@@ -154,6 +159,13 @@
   function writeCart(items) {
     try { localStorage.setItem(CART_KEY, JSON.stringify(items)); } catch (e) {}
     updateCartBadges();
+    syncCartUp();
+  }
+  // If signed in, mirror the cart to the customer's account (so it follows them across devices).
+  function syncCartUp() {
+    var s = currentSession(); if (!s || !s.token) return;
+    try { fetch("/api/cart", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ credential: s.token, action: "save", cart: readCart() }) }).catch(function () {}); }
+    catch (e) {}
   }
   function cartCount(items) {
     items = items || readCart();
@@ -218,6 +230,20 @@
   }
 
   updateCartBadges();
+
+  // If signed in, pull the saved cart and merge it with whatever's in this browser.
+  (function pullCart() {
+    var s = currentSession(); if (!s || !s.token) return;
+    fetch("/api/cart", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ credential: s.token, action: "get" }) })
+      .then(function (r) { return r.json(); }).then(function (d) {
+        if (!d || !d.ok || !Array.isArray(d.cart) || !d.cart.length) return;
+        var map = {};
+        readCart().forEach(function (it) { map[it.id] = it; });
+        d.cart.forEach(function (it) { if (map[it.id]) map[it.id].qty = Math.max(map[it.id].qty, it.qty); else map[it.id] = it; });
+        writeCart(Object.keys(map).map(function (k) { return map[k]; }));
+        if (cartRerender) cartRerender();
+      }).catch(function () {});
+  })();
 
   /* ---------- Live content + admin inline Edit Mode ---------- */
   (function () {
@@ -718,6 +744,7 @@
       writeCart(readCart().filter(function (it) { return it.id !== id; }));
       renderCart();
     };
+    cartRerender = renderCart; // let the account cart-sync refresh this page
     renderCart();
 
     var gotoCheckout = document.querySelector("[data-goto-checkout]");
@@ -777,11 +804,35 @@
 
   var s = getSession();
   if (s) {
-    slot.innerHTML = '<span class="auth-hi">Hi, ' + firstName(s.name) + '</span> <button type="button" class="auth-btn" data-signout>Sign out</button>';
+    slot.innerHTML = '<span class="auth-hi">Hi, ' + firstName(s.name) + '</span> ' +
+      '<button type="button" class="auth-btn" data-myorders>My orders</button> ' +
+      '<button type="button" class="auth-btn" data-signout>Sign out</button>';
     slot.querySelector("[data-signout]").addEventListener("click", function () {
       clearSession();
       if (window.google && google.accounts && google.accounts.id) { try { google.accounts.id.disableAutoSelect(); } catch (e) {} }
       window.location.reload();
+    });
+    slot.querySelector("[data-myorders]").addEventListener("click", function () {
+      var m = document.createElement("div"); m.className = "lt-history";
+      m.innerHTML = '<div class="lt-history-box"><div class="lt-history-head"><strong>My orders</strong><button type="button" class="lt-eb-link" data-close>Close</button></div><div class="lt-history-list">Loading…</div></div>';
+      document.body.appendChild(m);
+      m.querySelector("[data-close]").addEventListener("click", function () { m.remove(); });
+      m.addEventListener("click", function (e) { if (e.target === m) m.remove(); });
+      var list = m.querySelector(".lt-history-list");
+      fetch("/api/my-orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ credential: s.token }) })
+        .then(function (r) { return r.json(); }).then(function (d) {
+          if (!d.ok || !d.orders || !d.orders.length) { list.textContent = "No orders yet."; return; }
+          list.innerHTML = "";
+          d.orders.forEach(function (o) {
+            var when = o.date ? new Date(o.date).toLocaleDateString() : "";
+            var itemsTxt = (o.items || []).map(function (i) { return i.name + " ×" + i.qty; }).join(", ");
+            var total = "$" + ((o.totalCents || 0) / 100).toFixed(2);
+            var row = document.createElement("div"); row.className = "lt-history-row";
+            row.innerHTML = "<div><div class='lt-h-when'>" + when + "</div><div class='lt-h-sum'></div></div>";
+            row.querySelector(".lt-h-sum").textContent = (itemsTxt || "—") + " — " + total;
+            list.appendChild(row);
+          });
+        }).catch(function () { list.textContent = "Couldn't load your orders."; });
     });
     return;
   }
