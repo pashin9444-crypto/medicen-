@@ -709,7 +709,7 @@
           .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
           .then(function (res) {
             if (res.ok && res.d.ok) { pending = {}; apply(res.d.content); st.textContent = "✅ Published — live now."; }
-            else { st.textContent = (res.d.error || "Couldn't publish.") + (/authorized/i.test(res.d.error || "") ? " Please sign in again at /admin.html." : ""); }
+            else { st.textContent = (res.d.error || "Couldn't publish.") + (/authoriz/i.test(res.d.error || "") ? " Your sign-in may have expired — click Sign out, then Sign in with Google at the top of the page and try again." : ""); }
           }).catch(function () { st.textContent = "Error publishing. Please try again."; });
       });
     }
