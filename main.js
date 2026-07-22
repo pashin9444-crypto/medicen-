@@ -1158,11 +1158,15 @@
     });
   }
   function signupHref(e) {
+    // If the event is live on Eventbrite, booking + payment happen there.
+    if (e.eventbriteUrl) return e.eventbriteUrl;
     var q = "type=" + encodeURIComponent(e.type) + "&item=" + encodeURIComponent(e.title) +
       "&price=" + encodeURIComponent(e.priceDollars || 0) +
       "&when=" + encodeURIComponent(fmtWhen(e) + (e.duration ? " · " + e.duration : ""));
     return "signup.html?" + q;
   }
+  function signupAttrs(e) { return e.eventbriteUrl ? ' target="_blank" rel="noopener"' : ""; }
+  function signupLabel(e) { return (e.eventbriteUrl ? "Get tickets · " : "Sign up · ") + money(e.priceDollars || 0); }
   var CAL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>';
 
   // 6 professional presets (title, description, duration, default image).
@@ -1211,7 +1215,7 @@
           (e.location ? '<p style="font-size:0.92rem"><strong>Location:</strong> ' + esc(e.location) + '</p>' : "") +
           (e.note ? '<p style="font-size:0.92rem;color:var(--bronze-deep);font-style:italic">' + esc(e.note) + '</p>' : "") +
           (e.duration ? '<span class="fmt" style="margin-top:auto">' + esc(e.duration) + '</span>' : "") +
-          '<a class="btn btn-primary" style="margin-top:1rem;align-self:flex-start" href="' + esc(signupHref(e)) + '">Sign up · ' + esc(money(e.priceDollars || 0)) + '</a>' +
+          '<a class="btn btn-primary" style="margin-top:1rem;align-self:flex-start"' + signupAttrs(e) + ' href="' + esc(signupHref(e)) + '">' + esc(signupLabel(e)) + '</a>' +
         '</div>';
       if (who) card.appendChild(adminControls(e, i, events));
       grid.appendChild(card);
@@ -1259,7 +1263,7 @@
       '<span class="lt-ev-dot"></span>' +
       '<a href="#' + esc(e.id) + '" class="lt-ev-when">' + esc(fmtWhen(e)) + '</a>' +
       '<span class="lt-ev-title">' + esc(e.title) + (e.type === "retreat" ? ' · retreat' : "") + '</span>' +
-      '<a class="lt-ev-go" href="' + esc(signupHref(e)) + '">Sign up ' + esc(money(e.priceDollars || 0)) + '</a>' +
+      '<a class="lt-ev-go"' + signupAttrs(e) + ' href="' + esc(signupHref(e)) + '">' + (e.eventbriteUrl ? "Tickets " : "Sign up ") + esc(money(e.priceDollars || 0)) + '</a>' +
       '</li>';
   }
 
