@@ -1244,13 +1244,19 @@
       adminWrap.innerHTML = "";
       if (who) {
         var bar = document.createElement("div"); bar.className = "lt-ev-bar";
+        var synced = events.filter(function (e) { return e.eventbriteUrl; }).length;
         bar.innerHTML =
           '<strong>Manage schedule</strong>' +
           '<button type="button" class="lt-eb-btn lt-eb-primary" data-add="class">＋ Add class</button>' +
           '<button type="button" class="lt-eb-btn" data-add="retreat">＋ Add retreat</button>' +
+          '<button type="button" class="lt-eb-btn" data-ebsync title="Create/refresh every event on Eventbrite so people can buy tickets">↗ Push all to Eventbrite' + (events.length ? ' (' + synced + '/' + events.length + ' live)' : '') + '</button>' +
           '<span class="lt-ev-status" data-ev-status></span>';
         bar.querySelector('[data-add="class"]').addEventListener("click", function () { openTemplatePicker("class"); });
         bar.querySelector('[data-add="retreat"]').addEventListener("click", function () { openTemplatePicker("retreat"); });
+        bar.querySelector("[data-ebsync]").addEventListener("click", function () {
+          status("Pushing to Eventbrite…");
+          saveEvents(eventsList(), "Pushed to Eventbrite — ticket links are live.");
+        });
         adminWrap.appendChild(bar);
       }
     }
@@ -1275,7 +1281,8 @@
       '<button type="button" data-act="dup">Duplicate</button>' +
       '<button type="button" data-act="up"' + (i === 0 ? " disabled" : "") + '>↑</button>' +
       '<button type="button" data-act="down"' + (i === events.length - 1 ? " disabled" : "") + '>↓</button>' +
-      '<button type="button" data-act="del" class="lt-ev-del">Delete</button>';
+      '<button type="button" data-act="del" class="lt-ev-del">Delete</button>' +
+      (e.eventbriteUrl ? '<a class="lt-ev-eb" href="' + esc(e.eventbriteUrl) + '" target="_blank" rel="noopener">✓ on Eventbrite</a>' : '<span class="lt-ev-eb lt-ev-eb-off">not on Eventbrite yet</span>');
     wrap.querySelector('[data-act="edit"]').addEventListener("click", function () { openEditor(e, i); });
     wrap.querySelector('[data-act="dup"]').addEventListener("click", function () {
       var copy = JSON.parse(JSON.stringify(e));
