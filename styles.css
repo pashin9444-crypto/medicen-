@@ -1208,6 +1208,9 @@ body.lt-editing .lt-icoedit:hover { background: rgba(154,118,59,0.16); box-shado
 a.lt-ev-eb { background: rgba(79,107,58,0.14); color: var(--forest); border: 1px solid rgba(79,107,58,0.3); }
 a.lt-ev-eb:hover { background: var(--forest); color: #fff; }
 .lt-ev-eb-off { color: var(--ink-soft); border: 1px dashed rgba(122,95,44,0.3); }
+.cal-nav { display: inline-flex; gap: 0.4rem; align-items: center; }
+.cal-nav button { font: inherit; font-family: var(--label); font-size: 0.85rem; min-width: 2.2rem; padding: 0.35rem 0.7rem; border: 1px solid rgba(122,95,44,0.3); background: #fff; color: var(--forest-deep); border-radius: 8px; cursor: pointer; }
+.cal-nav button:hover { background: var(--bronze); color: #fff; border-color: var(--bronze); }
 .lt-tpl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.7rem; }
 .lt-tpl-opt { display: flex; flex-direction: column; text-align: left; padding: 0; overflow: hidden; background: #fff; border: 1px solid rgba(122,95,44,0.2); border-radius: 12px; cursor: pointer; }
 .lt-tpl-opt:hover { border-color: var(--bronze); box-shadow: var(--shadow-lift); }

@@ -1137,6 +1137,10 @@
   "use strict";
   var content = null;
   var grid = null; // resolved on first render
+  var calY, calM, calInit = false; // calendar view state
+  function trunc(s, n) { s = String(s == null ? "" : s); return s.length > n ? s.slice(0, n - 1) + "…" : s; }
+  function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+  function ymd(y, m, d) { return y + "-" + pad2(m + 1) + "-" + pad2(d); }
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function admin() { try { var a = JSON.parse(localStorage.getItem("lt-admin") || "null"); if (a && a.exp && a.exp < Date.now()) return null; return (a && (a.role === "admin" || a.role === "superadmin")) ? a : null; } catch (e) { return null; } }
@@ -1187,8 +1191,6 @@
   function render() {
     grid = document.querySelector("[data-events-grid]");
     if (!grid) return; // not the classes hub
-    var upcoming = document.querySelector("[data-events-upcoming]");
-    var countEl = document.querySelector("[data-events-count]");
     var adminWrap = document.querySelector("[data-events-admin]");
     var events = eventsList();
     var who = admin();
@@ -1221,23 +1223,8 @@
       grid.appendChild(card);
     });
 
-    // ----- Upcoming schedule (sorted, past separated) -----
-    if (upcoming) {
-      var srt = sorted(events);
-      var up = srt.filter(function (e) { return !isPast(e); });
-      var past = srt.filter(isPast).reverse().slice(0, 4);
-      var html = "";
-      if (up.length) {
-        html += '<ul class="lt-ev-sched">' + up.map(scheduleRow).join("") + "</ul>";
-      } else {
-        html += '<p class="cal-note">No upcoming dates are posted yet.</p>';
-      }
-      if (past.length) {
-        html += '<details class="lt-ev-pastwrap"><summary>Recent past dates</summary><ul class="lt-ev-sched">' + past.map(scheduleRow).join("") + "</ul></details>";
-      }
-      upcoming.innerHTML = html;
-    }
-    if (countEl) { var n = eventsList().filter(function (e) { return !isPast(e); }).length; countEl.textContent = n ? (n + " upcoming") : ""; }
+    // ----- Calendar (real current month, events plotted, month navigation) -----
+    renderCalendar();
 
     // ----- Admin toolbar -----
     if (adminWrap) {
@@ -1264,13 +1251,57 @@
     injectJsonLd(events);
   }
 
-  function scheduleRow(e) {
-    return '<li class="lt-ev-row' + (isPast(e) ? " lt-ev-past" : "") + '" style="--c:' + esc(e.color || "var(--bronze-deep)") + '">' +
-      '<span class="lt-ev-dot"></span>' +
-      '<a href="#' + esc(e.id) + '" class="lt-ev-when">' + esc(fmtWhen(e)) + '</a>' +
-      '<span class="lt-ev-title">' + esc(e.title) + (e.type === "retreat" ? ' · retreat' : "") + '</span>' +
-      '<a class="lt-ev-go"' + signupAttrs(e) + ' href="' + esc(signupHref(e)) + '">' + (e.eventbriteUrl ? "Tickets " : "Sign up ") + esc(money(e.priceDollars || 0)) + '</a>' +
-      '</li>';
+  // Dynamic month calendar — real current month, correct weekday alignment, today
+  // highlighted, events plotted on their real dates, with prev/next/Today navigation.
+  function renderCalendar() {
+    var host = document.querySelector("[data-events-calendar]"); if (!host) return;
+    var events = eventsList();
+    if (!calInit) {
+      var up = sorted(events).filter(function (e) { return !isPast(e) && e.date; });
+      var d0 = up.length ? dateObj(up[0]) : new Date();
+      calY = d0.getFullYear(); calM = d0.getMonth(); calInit = true;
+    }
+    var today = new Date(), ty = today.getFullYear(), tm = today.getMonth(), td = today.getDate();
+    var titleEl = document.querySelector("[data-cal-title]");
+    if (titleEl) titleEl.textContent = new Date(calY, calM, 1).toLocaleDateString(undefined, { month: "long", year: "numeric" });
+    var byDate = {};
+    events.forEach(function (e) { if (e.date) (byDate[e.date] = byDate[e.date] || []).push(e); });
+    var first = new Date(calY, calM, 1).getDay();
+    var dim = new Date(calY, calM + 1, 0).getDate();
+    var cells = []; var i;
+    for (i = 0; i < first; i++) cells.push(null);
+    for (i = 1; i <= dim; i++) cells.push(i);
+    while (cells.length % 7 !== 0) cells.push(null);
+    var wk = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    var html = '<table class="cal-grid"><thead><tr>' + wk.map(function (w) { return '<th scope="col">' + w + "</th>"; }).join("") + "</tr></thead><tbody>";
+    for (var r = 0; r < cells.length; r += 7) {
+      html += "<tr>";
+      for (var c = 0; c < 7; c++) {
+        var d = cells[r + c];
+        if (d == null) { html += '<td class="empty"></td>'; continue; }
+        var isToday = (calY === ty && calM === tm && d === td);
+        var evs = byDate[ymd(calY, calM, d)] || [];
+        html += "<td" + (isToday ? ' class="is-today"' : "") + '><div class="cal-date">' + d + "</div>";
+        evs.forEach(function (e) {
+          html += '<a class="cal-event" style="--c:' + esc(e.color || "var(--bronze-deep)") + '" href="#' + esc(e.id) + '">' + esc(trunc(e.title, 22)) + (e.time ? '<span class="t">' + esc(e.time) + "</span>" : "") + "</a>";
+        });
+        html += "</td>";
+      }
+      html += "</tr>";
+    }
+    html += "</tbody></table>";
+    host.innerHTML = html;
+    var legend = document.querySelector("[data-cal-legend]");
+    if (legend) {
+      var monthEvs = events.filter(function (e) { var dd = dateObj(e); return dd && dd.getFullYear() === calY && dd.getMonth() === calM; });
+      legend.innerHTML = monthEvs.length
+        ? monthEvs.map(function (e) { return '<li style="--c:' + esc(e.color || "var(--bronze-deep)") + '"><span class="sw"></span> ' + esc(trunc(e.title, 32)) + "</li>"; }).join("")
+        : '<li style="color:var(--ink-soft)">No events this month — use ‹ › to browse other months, or add one below.</li>';
+    }
+    var prev = document.querySelector("[data-cal-prev]"), next = document.querySelector("[data-cal-next]"), tod = document.querySelector("[data-cal-today]");
+    if (prev) prev.onclick = function () { calM--; if (calM < 0) { calM = 11; calY--; } renderCalendar(); };
+    if (next) next.onclick = function () { calM++; if (calM > 11) { calM = 0; calY++; } renderCalendar(); };
+    if (tod) tod.onclick = function () { var n = new Date(); calY = n.getFullYear(); calM = n.getMonth(); renderCalendar(); };
   }
 
   function adminControls(e, i, events) {
@@ -1281,7 +1312,7 @@
       '<button type="button" data-act="dup">Duplicate</button>' +
       '<button type="button" data-act="up"' + (i === 0 ? " disabled" : "") + '>↑</button>' +
       '<button type="button" data-act="down"' + (i === events.length - 1 ? " disabled" : "") + '>↓</button>' +
-      '<button type="button" data-act="del" class="lt-ev-del">Delete</button>' +
+      '<button type="button" data-act="del" class="lt-ev-del">Remove</button>' +
       (e.eventbriteUrl ? '<a class="lt-ev-eb" href="' + esc(e.eventbriteUrl) + '" target="_blank" rel="noopener">✓ on Eventbrite</a>' : '<span class="lt-ev-eb lt-ev-eb-off">not on Eventbrite yet</span>');
     wrap.querySelector('[data-act="edit"]').addEventListener("click", function () { openEditor(e, i); });
     wrap.querySelector('[data-act="dup"]').addEventListener("click", function () {
@@ -1471,7 +1502,7 @@
     if (content) return;
     var g = document.querySelector("[data-events-grid]");
     if (g && /Loading/.test(g.textContent)) g.innerHTML = '<p class="cal-note center" style="grid-column:1/-1">The schedule couldn\'t load just now — please refresh, or email <a href="mailto:info@livingterrain.org">info@livingterrain.org</a>.</p>';
-    var u = document.querySelector("[data-events-upcoming]");
-    if (u && /Loading/.test(u.textContent)) u.innerHTML = '<p class="cal-note">Schedule unavailable right now — please refresh.</p>';
+    var u = document.querySelector("[data-events-calendar]");
+    if (u && /Loading/.test(u.textContent)) u.innerHTML = '<p class="cal-note">Calendar unavailable right now — please refresh.</p>';
   }, 7000);
 })();

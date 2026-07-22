@@ -61,21 +61,26 @@
       </div>
     </section>
 
-    <!-- ============ UPCOMING SCHEDULE (dynamic — from stored events) ============ -->
+    <!-- ============ CALENDAR (dynamic — real current month + stored events) ============ -->
     <section class="section">
       <div class="container">
-        <div class="cal-top" style="display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem">
-          <div>
-            <p class="eyebrow" style="margin:0">Schedule</p>
-            <h2 style="margin:0.2rem 0 0">Upcoming classes &amp; retreats</h2>
-          </div>
-          <span class="cal-note" data-events-count></span>
-        </div>
+        <p class="eyebrow" style="margin:0">Schedule</p>
+        <h2 style="margin:0.2rem 0 1.25rem">Class &amp; retreat calendar</h2>
         <!-- Admin add/manage toolbar renders here (only for signed-in admins) -->
         <div data-events-admin></div>
-        <!-- Sorted, dynamic list of upcoming (and recent past) dates -->
-        <div data-events-upcoming><p class="cal-note">Loading the schedule…</p></div>
-        <p class="cal-hint">Select a class below to read the full description. To book a seat or ask about a private session, <a href="mailto:info@livingterrain.org">get in touch</a>.</p>
+        <div class="calendar">
+          <div class="cal-top">
+            <h3 style="margin:0" data-cal-title>—</h3>
+            <div class="cal-nav">
+              <button type="button" data-cal-prev aria-label="Previous month">‹</button>
+              <button type="button" data-cal-today>Today</button>
+              <button type="button" data-cal-next aria-label="Next month">›</button>
+            </div>
+          </div>
+          <ul class="cal-legend" data-cal-legend></ul>
+          <div class="cal-scroll" data-events-calendar><p class="cal-note">Loading the calendar…</p></div>
+          <p class="cal-hint">Select an event to jump to its full details below. To book, use “Get tickets” / “Sign up”. Questions? <a href="mailto:info@livingterrain.org">Get in touch</a>.</p>
+        </div>
       </div>
     </section>
 
