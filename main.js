@@ -251,21 +251,91 @@
     function money(cents) { return "$" + (cents / 100).toFixed(2).replace(/\.00$/, ""); }
 
     var PID = window.location.pathname.replace(/index\.html$/, "") || "/";
+
+    // Real professional font library (loaded from Google Fonts on every page so
+    // whatever Serena picks renders live for all visitors, not just in edit mode).
     var FONTS = [
       { label: "Default", value: "" },
-      { label: "Serif display", value: '"Cormorant Garamond", Georgia, serif' },
-      { label: "Serif body", value: '"EB Garamond", Georgia, serif' },
-      { label: "Sans (labels)", value: '"Jost", system-ui, sans-serif' },
-      { label: "Classic serif", value: "Georgia, 'Times New Roman', serif" },
-      { label: "Clean sans", value: "Arial, Helvetica, sans-serif" }
+      { label: "Playfair Display", value: '"Playfair Display", Georgia, serif' },
+      { label: "Cormorant Garamond", value: '"Cormorant Garamond", Georgia, serif' },
+      { label: "EB Garamond", value: '"EB Garamond", Georgia, serif' },
+      { label: "Lora", value: '"Lora", Georgia, serif' },
+      { label: "Source Serif", value: '"Source Serif 4", Georgia, serif' },
+      { label: "Montserrat", value: '"Montserrat", system-ui, sans-serif' },
+      { label: "Inter", value: '"Inter", system-ui, sans-serif' },
+      { label: "Nunito Sans", value: '"Nunito Sans", system-ui, sans-serif' },
+      { label: "Jost (labels)", value: '"Jost", system-ui, sans-serif' }
     ];
-    var TEXT_SEL = "h1,h2,h3,h4,h5,h6,p,li,td,th,dt,dd,blockquote,figcaption,.lede,.tagline,.eyebrow,.m-name,.m-eyebrow,.season-when,.time,.act,.ro-name,.ro-sub";
+    var FONT_SIZES = [
+      { label: "Default size", value: "" },
+      { label: "XS · 0.8rem", value: "0.8rem" }, { label: "S · 0.95rem", value: "0.95rem" },
+      { label: "M · 1.05rem", value: "1.05rem" }, { label: "L · 1.25rem", value: "1.25rem" },
+      { label: "XL · 1.6rem", value: "1.6rem" }, { label: "2XL · 2rem", value: "2rem" },
+      { label: "3XL · 2.6rem", value: "2.6rem" }, { label: "4XL · 3.2rem", value: "3.2rem" }
+    ];
+    (function loadFonts() {
+      if (document.getElementById("lt-fonts")) return;
+      var l = document.createElement("link"); l.id = "lt-fonts"; l.rel = "stylesheet";
+      l.href = "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Nunito+Sans:wght@400;600;700&family=Jost:wght@400;500&display=swap";
+      document.head.appendChild(l);
+    })();
+
+    // Searchable icon library (lucide-style, stroke = currentColor so it inherits
+    // the surrounding colour). Each entry is the inner markup of a 0 0 24 24 SVG.
+    var ICON_SET = {
+      "leaf": '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10z"/><path d="M2 21c0-3 1.9-5.4 5.1-6C9.5 14.5 12 13 13 12"/>',
+      "sprout": '<path d="M7 20h10"/><path d="M12 20c0-6 0-8 4-10"/><path d="M12 14c-4-1-6-3-6-7 4 0 6 2 6 6z"/><path d="M12 12c1-3 3-4 6-4 0 3-2 5-5 5"/>',
+      "flower": '<circle cx="12" cy="12" r="2.4"/><path d="M12 9.6c0-3 1.5-4.5 0-6.6-1.5 2.1 0 3.6 0 6.6zM12 14.4c0 3-1.5 4.5 0 6.6 1.5-2.1 0-3.6 0-6.6zM9.6 12c-3 0-4.5 1.5-6.6 0 2.1-1.5 3.6 0 6.6 0zM14.4 12c3 0 4.5-1.5 6.6 0-2.1 1.5-3.6 0-6.6 0z"/>',
+      "tree": '<path d="M12 3l5 7h-3l4 6H6l4-6H7z"/><path d="M12 16v5"/>',
+      "mountain": '<path d="M3 20l6-11 4 6 2-3 6 8z"/>',
+      "sun": '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+      "moon": '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+      "star": '<path d="M12 3l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 21l1.1-6.5L2.6 9.8l6.5-.9z"/>',
+      "sparkle": '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',
+      "heart": '<path d="M12 20s-7-4.3-9.3-9C1.2 8 2.5 4.5 6 4.5c2 0 3.2 1 4 2 .8-1 2-2 4-2 3.5 0 4.8 3.5 3.3 6.5C19 15.7 12 20 12 20z"/>',
+      "pulse": '<path d="M3 12h4l3 8 4-16 3 8h4"/>',
+      "droplet": '<path d="M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z"/>',
+      "flame": '<path d="M12 3c1 3 4 4 4 8a4 4 0 0 1-8 0c0-1.5 1-2.5 1-4 1 1 2 1 3 0-1-1.5-1-2.7 0-4z"/>',
+      "wind": '<path d="M3 8h10a2.5 2.5 0 1 0-2.5-2.5M3 12h15a2.5 2.5 0 1 1-2.5 2.5M3 16h9a2.5 2.5 0 1 1-2.5 2.5"/>',
+      "book": '<path d="M12 6C10 4.5 7 4 4 4.5v13C7 17 10 17.5 12 19M12 6c2-1.5 5-2 8-1.5v13c-3-.5-6 0-8 1.5M12 6v13"/>',
+      "calendar": '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>',
+      "clock": '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+      "pin": '<path d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+      "shield": '<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/>',
+      "shield-check": '<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/>',
+      "check": '<circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/>',
+      "users": '<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 5.5a3 3 0 0 1 0 5M17 20a6 6 0 0 0-3-5"/>',
+      "cap": '<path d="M12 4L2 9l10 5 10-5z"/><path d="M6 11v5c0 1 3 2.5 6 2.5s6-1.5 6-2.5v-5M22 9v5"/>',
+      "palette": '<path d="M12 3a9 9 0 1 0 0 18c1.5 0 2-1 2-2 0-1.5 1-2 2-2h2a3 3 0 0 0 3-3c0-5-4-9-9-9z"/><circle cx="7.5" cy="12" r="1"/><circle cx="10" cy="8" r="1"/><circle cx="14.5" cy="8" r="1"/><circle cx="17" cy="12" r="1"/>',
+      "music": '<path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="2.5"/><circle cx="16" cy="16" r="2.5"/>',
+      "feather": '<path d="M20 4a5.5 5.5 0 0 0-8 0L5 11v8h8l7-7a5.5 5.5 0 0 0 0-8z"/><path d="M16 8L4 20M12 8h4v4"/>',
+      "flask": '<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M7 15h10"/>',
+      "pill": '<path d="M10.5 20.5a5 5 0 0 1-7-7l3-3 7 7z"/><path d="M13.5 3.5a5 5 0 0 1 7 7l-3 3-7-7z"/>',
+      "coffee": '<path d="M4 8h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 9h2a2.5 2.5 0 0 1 0 5h-2"/><path d="M7 3v2M11 3v2"/>',
+      "gift": '<rect x="3" y="8" width="18" height="4"/><path d="M5 12v9h14v-9M12 8v13"/><path d="M12 8S11 3 8.5 3 6 6 6 6s2 2 6 2zM12 8s1-5 3.5-5S18 6 18 6s-2 2-6 2z"/>',
+      "home": '<path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/>',
+      "mail": '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M4 7l8 6 8-6"/>',
+      "compass": '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>'
+    };
+
+    // Block-level text units (edited as a whole so inline <strong>/<em>/<a> stay intact),
+    // plus the standalone-text classes used around the site. Scoped to the content
+    // area AND the footer, so effectively all page copy is editable.
+    var TEXT_SEL = "h1,h2,h3,h4,h5,h6,p,li,td,th,dt,dd,blockquote,figcaption,caption,legend," +
+      ".lede,.tagline,.eyebrow,.m-name,.m-eyebrow,.season-when,.time,.act,.ro-name,.ro-sub," +
+      ".clip-tag,.num,.fmt,.cal-note,.cal-hint,.join-price,.pw-note,.tw-partner,.tw-cobrand-head," +
+      ".tw-blurb,.statement,.disclaimer,.footer-legal,.footer-disclaimer,.amt,.big,.per,.sub-price," +
+      ".card-link,.tw-link,.opt,.ro-price,.btn";
+    var TEXT_SCOPE = ["#main", ".site-footer"];
     function textNodes() {
-      var scoped = "#main " + TEXT_SEL.split(",").join(",#main ");
+      var scoped = TEXT_SCOPE.map(function (s) { return TEXT_SEL.split(",").map(function (t) { return s + " " + t.trim(); }).join(","); }).join(",");
       return Array.prototype.slice.call(document.querySelectorAll(scoped)).filter(function (el) {
         if (el.textContent.trim().length === 0) return false;
         if (el.hasAttribute("data-edit") || el.querySelector("[data-edit]")) return false; // don't clobber prices/times
-        if (el.closest(".lt-editbar") || el.closest(".lt-history")) return false;
+        if (el.closest(".lt-editbar") || el.closest(".lt-history") || el.closest(".lt-picker")) return false;
+        if (el.closest("[data-events-grid]") || el.closest("[data-events-upcoming]") || el.closest("[data-events-admin]")) return false; // events edited via their own editor
+        if (el.matches("button, [data-add-to-cart], [data-buy-now]")) return false; // leave interactive controls alone
+        if (el.closest("[data-classlink]") || el.hasAttribute("data-classlink")) return false; // priced links are managed
         if (el.querySelector(TEXT_SEL)) return false; // only the innermost text block (keeps structure intact)
         return true;
       });
@@ -282,6 +352,32 @@
         if (t.text != null) el.innerHTML = t.text;
         if (t.color) el.style.color = t.color;
         if (t.font) el.style.fontFamily = t.font;
+        if (t.size) el.style.fontSize = t.size;
+      });
+    }
+
+    // Icons: any inline SVG inside the content area is swappable.
+    function iconEls() {
+      return Array.prototype.slice.call(document.querySelectorAll("#main svg")).filter(function (el) {
+        return !el.closest(".lt-editbar") && !el.closest(".lt-history") && !el.closest(".lt-picker") &&
+        !el.closest("[data-events-grid]") && !el.closest("[data-events-upcoming]") && !el.closest("[data-events-admin]");
+      });
+    }
+    function setIcon(el, name) {
+      if (!ICON_SET[name]) return;
+      el.setAttribute("viewBox", "0 0 24 24");
+      el.innerHTML = ICON_SET[name];
+    }
+    function applyIcons(icons) {
+      if (!icons) return;
+      var els = iconEls();
+      Object.keys(icons).forEach(function (key) {
+        if (key.indexOf(PID + "#ico") !== 0) return;
+        var i = parseInt(key.slice((PID + "#ico").length), 10);
+        var el = els[i]; if (!el) return;
+        var o = icons[key]; if (!o || !o.name) return;
+        if (o.orig != null && el.innerHTML.trim() !== String(o.orig).trim()) return; // structure changed → skip (safe)
+        setIcon(el, o.name);
       });
     }
 
@@ -316,12 +412,14 @@
           a.setAttribute("href", u.pathname + "?" + u.searchParams.toString());
         } catch (e) {}
       });
+      if (c.icons) applyIcons(c.icons);
       if (c.texts) applyTexts(c.texts);
       if (c.images) applyImages(c.images);
+      if (window.LTEvents && typeof window.LTEvents.apply === "function") window.LTEvents.apply(c);
     }
 
     fetch("/api/content").then(function (r) { return r.json(); })
-      .then(function (c) { if (c && typeof c.bottleCents === "number") apply(c); initEdit(); })
+      .then(function (c) { if (c && typeof c.bottleCents === "number") { window.LT_CONTENT = c; apply(c); } initEdit(); })
       .catch(function () { initEdit(); });
 
     function admin() {
@@ -340,7 +438,9 @@
         '<button type="button" class="lt-eb-btn" data-eb-toggle>✎ Edit mode: off</button>' +
         '<button type="button" class="lt-eb-btn lt-eb-primary" data-eb-publish hidden>Publish</button>' +
         '<input type="color" class="lt-eb-color" data-eb-color hidden title="Text colour">' +
-        '<select class="lt-eb-font" data-eb-font hidden aria-label="Font"></select>' +
+        '<select class="lt-eb-font" data-eb-font hidden aria-label="Font family"></select>' +
+        '<select class="lt-eb-font" data-eb-size hidden aria-label="Font size"></select>' +
+        '<span class="lt-eb-hint" data-eb-iconhint hidden>Click any icon to swap it</span>' +
         '<button type="button" class="lt-eb-btn" data-eb-history>History</button>' +
         '<span class="lt-eb-status" data-eb-status></span>' +
         '<button type="button" class="lt-eb-link" data-eb-signout>Sign out</button>';
@@ -351,11 +451,56 @@
       histWrap.className = "lt-history"; histWrap.hidden = true;
       histWrap.innerHTML = '<div class="lt-history-box"><div class="lt-history-head"><strong>Change history</strong><button type="button" class="lt-eb-link" data-hist-close>Close</button></div><div class="lt-history-list" data-hist-list>Loading…</div></div>';
       document.body.appendChild(histWrap);
-      function fmtSnap(s) {
-        var when = s.updatedAt ? new Date(s.updatedAt).toLocaleString() : "—";
-        var by = s.updatedBy || "—";
-        var summary = "bottle $" + (s.bottleCents / 100) + " · collection $" + (s.collectionCents / 100) + " · class $" + (s.classPriceCents / 100);
-        return { when: when, by: by, summary: summary };
+      // Real change log: diff each version against the one before it and show the
+      // actual fields that changed (field · old → new). No generic placeholders.
+      function plainText(html) { var d = document.createElement("div"); d.innerHTML = html || ""; return (d.textContent || "").replace(/\s+/g, " ").trim(); }
+      function trunc(s, n) { s = String(s == null ? "" : s); return s.length > n ? s.slice(0, n) + "…" : s; }
+      function fontLabel(v) { if (!v) return "default"; for (var i = 0; i < FONTS.length; i++) if (FONTS[i].value === v) return FONTS[i].label; return String(v).replace(/["']/g, "").split(",")[0]; }
+      function uniqKeys(a, b) { var m = {}, out = []; Object.keys(a || {}).concat(Object.keys(b || {})).forEach(function (k) { if (!m[k]) { m[k] = 1; out.push(k); } }); return out; }
+      var PAGE_NAMES = { "/": "Home", "/index.html": "Home", "/about.html": "About", "/classes.html": "Classes", "/retreats.html": "Retreats", "/products.html": "Extracts", "/resources.html": "Resources", "/recipes.html": "Recipes", "/signup.html": "Sign-up", "/privacy.html": "Privacy", "/cart.html": "Cart", "/success.html": "Success" };
+      function pageLabel(key) { var path = String(key || "").split("#")[0]; if (PAGE_NAMES[path]) return PAGE_NAMES[path]; return path.replace(/^\//, "").replace(/\.html$/, "") || "Home"; }
+      function q(s) { return '“' + trunc(s || "—", 220) + '”'; }
+      function eventsById(list) { var m = {}; (list || []).forEach(function (e) { if (e && e.id) m[e.id] = e; }); return m; }
+      function diffSnap(a, b) { // a = newer, b = older
+        a = a || {}; b = b || {};
+        var out = [];
+        [["bottleCents", "Bottle price"], ["collectionCents", "Collection price"], ["classPriceCents", "Class price"]].forEach(function (p) {
+          if ((a[p[0]] || 0) !== (b[p[0]] || 0)) out.push({ f: p[1], from: "$" + ((b[p[0]] || 0) / 100), to: "$" + ((a[p[0]] || 0) / 100) });
+        });
+        uniqKeys(a.classWhen, b.classWhen).forEach(function (k) {
+          var av = (a.classWhen || {})[k] || "", bv = (b.classWhen || {})[k] || "";
+          if (av !== bv) out.push({ f: "Class time", from: bv || "—", to: av || "—" });
+        });
+        // Text edits — show the page and the exact wording that changed (long is fine).
+        uniqKeys(a.texts, b.texts).forEach(function (k) {
+          var av = (a.texts || {})[k] || {}, bv = (b.texts || {})[k] || {}, pg = pageLabel(k);
+          if (plainText(av.text) !== plainText(bv.text)) out.push({ page: pg, f: "Text edited", from: q(plainText(bv.text)), to: q(plainText(av.text)) });
+          if ((av.color || "") !== (bv.color || "")) out.push({ page: pg, f: "Text colour", from: bv.color || "default", to: av.color || "default" });
+          if ((av.font || "") !== (bv.font || "")) out.push({ page: pg, f: "Font", from: fontLabel(bv.font), to: fontLabel(av.font) });
+          if ((av.size || "") !== (bv.size || "")) out.push({ page: pg, f: "Font size", from: bv.size || "default", to: av.size || "default" });
+        });
+        uniqKeys(a.images, b.images).forEach(function (k) {
+          var av = (a.images || {})[k] || {}, bv = (b.images || {})[k] || {};
+          if ((av.url || "") !== (bv.url || "")) out.push({ page: pageLabel(k), f: "Image", from: bv.url ? "a previous image" : "the original", to: av.url ? "a new uploaded image" : "the original" });
+        });
+        uniqKeys(a.icons, b.icons).forEach(function (k) {
+          var av = (a.icons || {})[k] || {}, bv = (b.icons || {})[k] || {};
+          if ((av.name || "") !== (bv.name || "")) out.push({ page: pageLabel(k), f: "Icon", from: bv.name || "original", to: av.name || "original" });
+        });
+        // Events / retreats — per-event, field-by-field (e.g. date 2026-08-23 → 2026-08-24).
+        var ea = eventsById(a.events), eb = eventsById(b.events);
+        uniqKeys(ea, eb).forEach(function (id) {
+          var av = ea[id], bv = eb[id];
+          if (av && !bv) { out.push({ page: "Classes", f: "Added " + (av.type || "class"), from: "—", to: q(av.title) }); return; }
+          if (!av && bv) { out.push({ page: "Classes", f: "Removed " + (bv.type || "class"), from: q(bv.title), to: "—" }); return; }
+          var label = "Event " + q(bv.title || av.title);
+          [["title", "title"], ["date", "date"], ["time", "time"], ["duration", "duration"], ["priceDollars", "price"], ["location", "location"], ["note", "note"], ["type", "type"], ["color", "colour"]].forEach(function (p) {
+            if (String(av[p[0]] == null ? "" : av[p[0]]) !== String(bv[p[0]] == null ? "" : bv[p[0]])) out.push({ page: "Classes", f: label + " — " + p[1], from: (bv[p[0]] == null || bv[p[0]] === "" ? "—" : String(bv[p[0]])), to: (av[p[0]] == null || av[p[0]] === "" ? "—" : String(av[p[0]])) });
+          });
+          if (plainText(av.desc) !== plainText(bv.desc)) out.push({ page: "Classes", f: label + " — description", from: q(plainText(bv.desc)), to: q(plainText(av.desc)) });
+          if ((av.image || "") !== (bv.image || "")) out.push({ page: "Classes", f: label + " — image", from: "previous", to: "new image" });
+        });
+        return out;
       }
       bar.querySelector("[data-eb-history]").addEventListener("click", function () {
         histWrap.hidden = false;
@@ -366,17 +511,27 @@
             if (!d.ok || !d.history || !d.history.length) { list.textContent = "No saved versions yet."; return; }
             list.innerHTML = "";
             d.history.forEach(function (s, i) {
-              var f = fmtSnap(s);
+              var when = s.updatedAt ? new Date(s.updatedAt).toLocaleString() : "—";
+              var by = s.updatedBy || "—";
+              var changes = diffSnap(s, d.history[i + 1]); // compare to the previous (older) version
               var row = document.createElement("div"); row.className = "lt-history-row";
-              row.innerHTML = '<div><div class="lt-h-when">' + f.when + (i === 0 ? " · current" : "") + '</div><div class="lt-h-sum">' + f.summary + ' — <em>' + f.by + '</em></div></div>';
-              if (i !== 0 && who.role === "superadmin") {
+              var changeHtml;
+              if (i === d.history.length - 1) changeHtml = "<em>First saved version</em>";
+              else if (!changes.length) changeHtml = "<em>No field-level changes recorded</em>";
+              else changeHtml = changes.slice(0, 60).map(function (c) {
+                return '<span class="lt-h-change">' + (c.page ? '<b class="lt-h-page">' + esc(c.page) + '</b> ' : "") + '<b>' + esc(c.f) + ':</b> ' + esc(c.from) + ' → ' + esc(c.to) + '</span>';
+              }).join("") + (changes.length > 60 ? '<span class="lt-h-change">…and ' + (changes.length - 60) + ' more</span>' : "");
+              var left = document.createElement("div");
+              left.innerHTML = '<div class="lt-h-when">' + esc(when) + (i === 0 ? " · current" : "") + ' — <em>' + esc(by) + '</em></div><div class="lt-h-sum">' + changeHtml + '</div>';
+              row.appendChild(left);
+              if (i !== 0) {
                 var b = document.createElement("button"); b.type = "button"; b.className = "lt-eb-btn"; b.textContent = "Revert to this";
                 b.addEventListener("click", function () {
                   if (!window.confirm("Revert the site to this version?")) return;
                   b.textContent = "Reverting…";
                   fetch("/api/content", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ credential: who.token, action: "revert", ts: s.updatedAt }) })
                     .then(function (r) { return r.json(); }).then(function (res) {
-                      if (res.ok && res.content) { apply(res.content); histWrap.hidden = true; st.textContent = "✅ Reverted — live now."; }
+                      if (res.ok && res.content) { apply(res.content); histWrap.hidden = true; st.textContent = "✅ Reverted — live now. Reloading…"; setTimeout(function () { window.location.reload(); }, 900); }
                       else { b.textContent = "Failed"; }
                     }).catch(function () { b.textContent = "Failed"; });
                 });
@@ -391,9 +546,11 @@
       var editing = false, pending = {};
       var toggle = bar.querySelector("[data-eb-toggle]"), pub = bar.querySelector("[data-eb-publish]"), st = bar.querySelector("[data-eb-status]");
       var colorCtl = bar.querySelector("[data-eb-color]"), fontCtl = bar.querySelector("[data-eb-font]");
+      var sizeCtl = bar.querySelector("[data-eb-size]"), iconHint = bar.querySelector("[data-eb-iconhint]");
       FONTS.forEach(function (f) { var o = document.createElement("option"); o.value = f.value; o.textContent = f.label; fontCtl.appendChild(o); });
+      FONT_SIZES.forEach(function (f) { var o = document.createElement("option"); o.value = f.value; o.textContent = f.label; sizeCtl.appendChild(o); });
 
-      // ----- Click-in-place TEXT editing (+ colour & font) -----
+      // ----- Click-in-place TEXT editing (+ colour, font family & size) -----
       var tNodes = textNodes();
       var activeText = null;
       function rgbToHex(rgb) { var m = (rgb || "").match(/\d+/g); if (!m || m.length < 3) return null; return "#" + m.slice(0, 3).map(function (x) { var h = parseInt(x, 10).toString(16); return h.length < 2 ? "0" + h : h; }).join(""); }
@@ -406,24 +563,28 @@
         entry.text = el.innerHTML;
         if (el.style.color) entry.color = el.style.color;
         if (el.style.fontFamily) entry.font = el.style.fontFamily;
+        if (el.style.fontSize) entry.size = el.style.fontSize;
         pending.texts[key] = entry;
         st.textContent = "Edited — click Publish to make it live.";
       }
       tNodes.forEach(function (el) {
-        el.addEventListener("click", function () {
+        el.addEventListener("click", function (e) {
           if (!editing) return;
+          e.preventDefault(); // don't follow links / submit buttons while editing
           if (el.dataset.ltOrig == null) el.dataset.ltOrig = el.textContent;
           activeText = el;
           el.setAttribute("contenteditable", "true");
           el.focus();
-          try { colorCtl.value = rgbToHex(getComputedStyle(el).color) || "#33342c"; } catch (e) {}
+          try { colorCtl.value = rgbToHex(getComputedStyle(el).color) || "#33342c"; } catch (e2) {}
           fontCtl.value = el.style.fontFamily || "";
+          sizeCtl.value = el.style.fontSize || "";
         });
         el.addEventListener("input", function () { if (editing) stageText(el); });
         el.addEventListener("blur", function () { el.removeAttribute("contenteditable"); });
       });
       colorCtl.addEventListener("input", function () { if (activeText) { activeText.style.color = colorCtl.value; stageText(activeText); } });
       fontCtl.addEventListener("change", function () { if (activeText) { activeText.style.fontFamily = fontCtl.value; stageText(activeText); } });
+      sizeCtl.addEventListener("change", function () { if (activeText) { activeText.style.fontSize = sizeCtl.value; stageText(activeText); } });
 
       // ----- Click an image (or the logo) to replace it -----
       var imgEls = logoEls().map(function (el) { return { el: el, key: "site.logo" }; })
@@ -460,15 +621,62 @@
         reader.readAsDataURL(f);
       });
 
+      // ----- Click an icon to swap it (searchable, lucide-style set) -----
+      var icoEls = iconEls().map(function (el, i) { return { el: el, key: PID + "#ico" + i }; });
+      var iconTarget = null;
+      var picker = document.createElement("div");
+      picker.className = "lt-picker lt-history"; picker.hidden = true;
+      picker.innerHTML = '<div class="lt-history-box"><div class="lt-history-head"><strong>Choose an icon</strong><button type="button" class="lt-eb-link" data-ico-close>Close</button></div>' +
+        '<input type="search" class="lt-ico-search" data-ico-search placeholder="Search icons (leaf, sun, heart…)" aria-label="Search icons">' +
+        '<div class="lt-ico-grid" data-ico-grid></div></div>';
+      document.body.appendChild(picker);
+      var icoGrid = picker.querySelector("[data-ico-grid]");
+      var icoSearch = picker.querySelector("[data-ico-search]");
+      function renderIconGrid(q) {
+        q = (q || "").toLowerCase().trim();
+        icoGrid.innerHTML = "";
+        Object.keys(ICON_SET).forEach(function (name) {
+          if (q && name.indexOf(q) < 0) return;
+          var b = document.createElement("button"); b.type = "button"; b.className = "lt-ico-opt"; b.title = name;
+          b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICON_SET[name] + '</svg><span>' + name + '</span>';
+          b.addEventListener("click", function () {
+            if (!iconTarget) return;
+            var o = iconTarget;
+            if (o.el.dataset.ltIcoOrig == null) o.el.dataset.ltIcoOrig = o.el.innerHTML;
+            setIcon(o.el, name);
+            pending.icons = pending.icons || {};
+            pending.icons[o.key] = { orig: o.el.dataset.ltIcoOrig, name: name };
+            picker.hidden = true;
+            st.textContent = "Icon changed — click Publish to make it live.";
+          });
+          icoGrid.appendChild(b);
+        });
+        if (!icoGrid.children.length) icoGrid.innerHTML = '<p style="grid-column:1/-1;color:var(--ink-soft)">No icons match that search.</p>';
+      }
+      icoSearch.addEventListener("input", function () { renderIconGrid(icoSearch.value); });
+      picker.querySelector("[data-ico-close]").addEventListener("click", function () { picker.hidden = true; });
+      picker.addEventListener("click", function (e) { if (e.target === picker) picker.hidden = true; });
+      icoEls.forEach(function (o) {
+        o.el.addEventListener("click", function (e) {
+          if (!editing) return;
+          e.preventDefault(); e.stopPropagation();
+          iconTarget = o;
+          icoSearch.value = ""; renderIconGrid("");
+          picker.hidden = false; icoSearch.focus();
+        });
+      });
+
       toggle.addEventListener("click", function () {
         editing = !editing;
         document.body.classList.toggle("lt-editing", editing);
         toggle.textContent = "✎ Edit mode: " + (editing ? "on" : "off");
         pub.hidden = !editing;
-        colorCtl.hidden = !editing; fontCtl.hidden = !editing;
+        colorCtl.hidden = !editing; fontCtl.hidden = !editing; sizeCtl.hidden = !editing; iconHint.hidden = !editing;
         tNodes.forEach(function (el) { el.classList.toggle("lt-tedit", editing); if (!editing) el.removeAttribute("contenteditable"); });
         imgEls.forEach(function (o) { o.el.classList.toggle("lt-iedit", editing); });
-        st.textContent = editing ? "Click any highlighted text, price, time, or image to change it." : "";
+        icoEls.forEach(function (o) { o.el.classList.toggle("lt-icoedit", editing); });
+        if (!editing) picker.hidden = true;
+        st.textContent = editing ? "Click any highlighted text, price, time, image, or icon to change it." : "";
       });
       bar.querySelector("[data-eb-signout]").addEventListener("click", function () {
         try { localStorage.removeItem("lt-admin"); } catch (e) {}
@@ -706,11 +914,16 @@
       if (waiver && !waiver.hidden) {
         var wi = waiver.querySelector("[data-waiver-input]");
         if (wi && !wi.checked) {
-          if (suStatus) { suStatus.style.color = "#8f5836"; suStatus.textContent = "Please agree to the liability waiver to sign up for a class."; }
+          if (suStatus) { suStatus.style.color = "#8f5836"; suStatus.textContent = "Please read and agree to the liability waiver to sign up for a class."; }
+          var det = waiver.querySelector(".waiver-details"); if (det) det.open = true;
           wi.focus();
           return;
         }
-        waiverAgreed = "agreed";
+        // Record who accepted and exactly when, with the booking.
+        var waiverTime = new Date();
+        waiverAgreed = "AGREED by " + name + " on " + waiverTime.toLocaleString() + " (" + waiverTime.toISOString() + ")";
+        var ack = waiver.querySelector("[data-waiver-ack]");
+        if (ack) { ack.hidden = false; ack.textContent = "✓ Waiver accepted by " + name + " on " + waiverTime.toLocaleString() + "."; }
       }
       var phone = (suForm.querySelector('[name="phone"]').value || "").trim();
       var retreatDetail = "";
@@ -911,4 +1124,343 @@
       try { google.accounts.id.prompt(); } catch (e) {} // the "Sign in with Google" popup on arrival
     });
   }).catch(function () {});
+})();
+
+/* ============================================================
+   Living Terrain — data-driven Classes / Retreats / Events.
+   Renders the schedule + detail cards from stored content.events
+   (dynamic, current dates — no sample data). Admins get add / edit /
+   reorder / duplicate / delete + 6 quick-add templates, and each save
+   is (optionally) pushed to Eventbrite server-side.
+   ============================================================ */
+(function LTEventsModule() {
+  "use strict";
+  var content = null;
+  var grid = null; // resolved on first render
+
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function admin() { try { var a = JSON.parse(localStorage.getItem("lt-admin") || "null"); if (a && a.exp && a.exp < Date.now()) return null; return (a && (a.role === "admin" || a.role === "superadmin")) ? a : null; } catch (e) { return null; } }
+  function money(n) { var s = (Math.round(n * 100) % 100 === 0) ? String(Math.round(n)) : Number(n).toFixed(2); return "$" + s.replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+  function dateObj(e) { if (!e.date) return null; var p = e.date.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function fmtWhen(e) {
+    var d = dateObj(e), out = "";
+    if (d && !isNaN(d)) out = d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+    if (e.time) out += (out ? " · " : "") + e.time;
+    if (!out) out = "Date to be announced";
+    return out;
+  }
+  function isPast(e) { var d = dateObj(e); if (!d) return false; var today = new Date(); today.setHours(0, 0, 0, 0); return d < today; }
+  function sorted(events) {
+    return events.slice().sort(function (a, b) {
+      var da = dateObj(a), db = dateObj(b);
+      if (!da && !db) return 0; if (!da) return 1; if (!db) return -1;
+      return da - db;
+    });
+  }
+  function signupHref(e) {
+    var q = "type=" + encodeURIComponent(e.type) + "&item=" + encodeURIComponent(e.title) +
+      "&price=" + encodeURIComponent(e.priceDollars || 0) +
+      "&when=" + encodeURIComponent(fmtWhen(e) + (e.duration ? " · " + e.duration : ""));
+    return "signup.html?" + q;
+  }
+  var CAL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>';
+
+  // 6 professional presets (title, description, duration, default image).
+  var TEMPLATES = [
+    { key: "herbal", label: "Herbal Medicine Workshop", type: "class", image: "assets/class-apothecary.jpg", duration: "2 hours", desc: "A hands-on workshop on safe, evidence-informed herbal medicine — how to choose, prepare, and combine botanicals for everyday wellness, with take-home notes and simple recipes." },
+    { key: "mushrooms", label: "Medicinal Mushrooms Class", type: "class", image: "assets/class-mushrooms.jpg", duration: "2 hours", desc: "Explore functional mushrooms — Reishi, Lion's Mane, Turkey Tail, Cordyceps and more — for immunity, focus, stress, and longevity, and how to tell quality products from hype." },
+    { key: "plantwalk", label: "Plant Walk / Foraging Outing", type: "class", image: "assets/hero-meadow.jpg", duration: "2 hours · outdoors", desc: "A guided outdoor walk to identify local medicinal and edible plants, learn respectful and sustainable harvesting, and connect traditional uses with modern evidence." },
+    { key: "retreat", label: "Multi-Day Wellness Retreat", type: "retreat", image: "assets/tex-pebbles.jpg", duration: "Weekend · 2 nights", desc: "An immersive retreat blending medicine-making, gentle movement, breathwork, nourishing vegetarian food, and restorative time in nature. Leave with extracts you made and daily routines you can sustain." },
+    { key: "nutrition", label: "Nutrition & Herbalism Seminar", type: "class", image: "assets/class-gut-health.jpg", duration: "2 hours", desc: "A practical seminar connecting nutrition and herbalism — foods, botanicals, and supplements that support gut health, energy, and resilience, plus how to build a routine without overwhelm." },
+    { key: "seasonal", label: "Seasonal / Community Class", type: "class", image: "assets/class-focus-memory.jpg", duration: "2 hours", desc: "A welcoming, seasonally themed community class — practical wellness rooted in the rhythm of the year. Approachable, evidence-informed, and open to all experience levels." },
+  ];
+
+  function eventsList() { return (content && Array.isArray(content.events)) ? content.events : []; }
+
+  function apply(c) { content = c; render(); }
+  window.LTEvents = { apply: apply };
+
+  function render() {
+    grid = document.querySelector("[data-events-grid]");
+    if (!grid) return; // not the classes hub
+    var upcoming = document.querySelector("[data-events-upcoming]");
+    var countEl = document.querySelector("[data-events-count]");
+    var adminWrap = document.querySelector("[data-events-admin]");
+    var events = eventsList();
+    var who = admin();
+
+    // ----- Detail cards (in stored order) -----
+    grid.innerHTML = "";
+    if (!events.length) {
+      grid.innerHTML = '<p class="cal-note center" style="grid-column:1/-1">No classes or retreats are scheduled right now — check back soon.</p>';
+    }
+    events.forEach(function (e, i) {
+      var card = document.createElement("article");
+      card.className = "class-card reveal in" + (isPast(e) ? " lt-ev-past" : "");
+      card.id = e.id;
+      var num = String(i + 1); if (num.length < 2) num = "0" + num;
+      var img = e.image || "assets/hero-meadow.jpg";
+      var typeTag = e.type === "retreat" ? '<span class="lt-ev-type">Retreat</span>' : "";
+      card.innerHTML =
+        '<div class="thumb"><img src="' + esc(img) + '" alt="' + esc(e.title) + '" loading="lazy"></div>' +
+        '<div class="card-inner">' +
+          '<span class="num">' + num + '</span>' + typeTag +
+          '<h3>' + esc(e.title) + '</h3>' +
+          '<p class="class-when">' + CAL_SVG + ' <span>' + esc(fmtWhen(e)) + (isPast(e) ? " · past" : "") + '</span></p>' +
+          '<p>' + esc(e.desc) + '</p>' +
+          (e.location ? '<p style="font-size:0.92rem"><strong>Location:</strong> ' + esc(e.location) + '</p>' : "") +
+          (e.note ? '<p style="font-size:0.92rem;color:var(--bronze-deep);font-style:italic">' + esc(e.note) + '</p>' : "") +
+          (e.duration ? '<span class="fmt" style="margin-top:auto">' + esc(e.duration) + '</span>' : "") +
+          '<a class="btn btn-primary" style="margin-top:1rem;align-self:flex-start" href="' + esc(signupHref(e)) + '">Sign up · ' + esc(money(e.priceDollars || 0)) + '</a>' +
+        '</div>';
+      if (who) card.appendChild(adminControls(e, i, events));
+      grid.appendChild(card);
+    });
+
+    // ----- Upcoming schedule (sorted, past separated) -----
+    if (upcoming) {
+      var srt = sorted(events);
+      var up = srt.filter(function (e) { return !isPast(e); });
+      var past = srt.filter(isPast).reverse().slice(0, 4);
+      var html = "";
+      if (up.length) {
+        html += '<ul class="lt-ev-sched">' + up.map(scheduleRow).join("") + "</ul>";
+      } else {
+        html += '<p class="cal-note">No upcoming dates are posted yet.</p>';
+      }
+      if (past.length) {
+        html += '<details class="lt-ev-pastwrap"><summary>Recent past dates</summary><ul class="lt-ev-sched">' + past.map(scheduleRow).join("") + "</ul></details>";
+      }
+      upcoming.innerHTML = html;
+    }
+    if (countEl) { var n = eventsList().filter(function (e) { return !isPast(e); }).length; countEl.textContent = n ? (n + " upcoming") : ""; }
+
+    // ----- Admin toolbar -----
+    if (adminWrap) {
+      adminWrap.innerHTML = "";
+      if (who) {
+        var bar = document.createElement("div"); bar.className = "lt-ev-bar";
+        bar.innerHTML =
+          '<strong>Manage schedule</strong>' +
+          '<button type="button" class="lt-eb-btn lt-eb-primary" data-add="class">＋ Add class</button>' +
+          '<button type="button" class="lt-eb-btn" data-add="retreat">＋ Add retreat</button>' +
+          '<span class="lt-ev-status" data-ev-status></span>';
+        bar.querySelector('[data-add="class"]').addEventListener("click", function () { openTemplatePicker("class"); });
+        bar.querySelector('[data-add="retreat"]').addEventListener("click", function () { openTemplatePicker("retreat"); });
+        adminWrap.appendChild(bar);
+      }
+    }
+
+    injectJsonLd(events);
+  }
+
+  function scheduleRow(e) {
+    return '<li class="lt-ev-row' + (isPast(e) ? " lt-ev-past" : "") + '" style="--c:' + esc(e.color || "var(--bronze-deep)") + '">' +
+      '<span class="lt-ev-dot"></span>' +
+      '<a href="#' + esc(e.id) + '" class="lt-ev-when">' + esc(fmtWhen(e)) + '</a>' +
+      '<span class="lt-ev-title">' + esc(e.title) + (e.type === "retreat" ? ' · retreat' : "") + '</span>' +
+      '<a class="lt-ev-go" href="' + esc(signupHref(e)) + '">Sign up ' + esc(money(e.priceDollars || 0)) + '</a>' +
+      '</li>';
+  }
+
+  function adminControls(e, i, events) {
+    var wrap = document.createElement("div");
+    wrap.className = "lt-ev-ctl";
+    wrap.innerHTML =
+      '<button type="button" data-act="edit">Edit</button>' +
+      '<button type="button" data-act="dup">Duplicate</button>' +
+      '<button type="button" data-act="up"' + (i === 0 ? " disabled" : "") + '>↑</button>' +
+      '<button type="button" data-act="down"' + (i === events.length - 1 ? " disabled" : "") + '>↓</button>' +
+      '<button type="button" data-act="del" class="lt-ev-del">Delete</button>';
+    wrap.querySelector('[data-act="edit"]').addEventListener("click", function () { openEditor(e, i); });
+    wrap.querySelector('[data-act="dup"]').addEventListener("click", function () {
+      var copy = JSON.parse(JSON.stringify(e));
+      copy.id = e.id + "-copy-" + Math.random().toString(36).slice(2, 6);
+      copy.title = e.title + " (copy)";
+      copy.eventbriteId = undefined;
+      var next = events.slice(); next.splice(i + 1, 0, copy); saveEvents(next, "Duplicated.");
+    });
+    wrap.querySelector('[data-act="up"]').addEventListener("click", function () { move(events, i, -1); });
+    wrap.querySelector('[data-act="down"]').addEventListener("click", function () { move(events, i, 1); });
+    wrap.querySelector('[data-act="del"]').addEventListener("click", function () {
+      if (!window.confirm("Delete “" + e.title + "”? This can be restored from History.")) return;
+      var next = events.slice(); next.splice(i, 1); saveEvents(next, "Deleted.");
+    });
+    return wrap;
+  }
+
+  function move(events, i, delta) {
+    var j = i + delta; if (j < 0 || j >= events.length) return;
+    var next = events.slice(); var t = next[i]; next[i] = next[j]; next[j] = t;
+    saveEvents(next, "Reordered.");
+  }
+
+  function status(msg) { var s = document.querySelector("[data-ev-status]"); if (s) s.textContent = msg || ""; }
+
+  function saveEvents(next, okMsg) {
+    var who = admin(); if (!who) return;
+    status("Saving…");
+    fetch("/api/content", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ credential: who.token, content: { events: next } }) })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (res.ok && res.d.ok) { content = res.d.content; render(); status("✅ Saved — live now."); }
+        else { status((res.d && res.d.error) || "Couldn't save."); }
+      }).catch(function () { status("Error saving. Please try again."); });
+  }
+
+  // ----- Modals (template picker + editor) -----
+  function modal(title, bodyNode) {
+    var m = document.createElement("div"); m.className = "lt-history lt-picker";
+    var box = document.createElement("div"); box.className = "lt-history-box";
+    var head = document.createElement("div"); head.className = "lt-history-head";
+    head.innerHTML = "<strong>" + esc(title) + "</strong>";
+    var close = document.createElement("button"); close.type = "button"; close.className = "lt-eb-link"; close.textContent = "Close";
+    close.addEventListener("click", function () { m.remove(); });
+    head.appendChild(close); box.appendChild(head); box.appendChild(bodyNode);
+    m.appendChild(box); document.body.appendChild(m);
+    m.addEventListener("click", function (e) { if (e.target === m) m.remove(); });
+    return m;
+  }
+
+  function openTemplatePicker(type) {
+    var body = document.createElement("div");
+    body.innerHTML = '<p class="cal-note" style="margin:0 0 0.8rem">Pick a starting point — everything is editable afterwards.</p>';
+    var g = document.createElement("div"); g.className = "lt-tpl-grid";
+    TEMPLATES.filter(function (t) { return type === "retreat" ? t.type === "retreat" : true; }).forEach(function (t) {
+      var b = document.createElement("button"); b.type = "button"; b.className = "lt-tpl-opt";
+      b.innerHTML = '<img src="' + esc(t.image) + '" alt=""><span class="lt-tpl-name">' + esc(t.label) + '</span><span class="lt-tpl-type">' + (t.type === "retreat" ? "Retreat" : "Class") + '</span>';
+      b.addEventListener("click", function () {
+        m.remove();
+        var e = {
+          id: t.key + "-" + Math.random().toString(36).slice(2, 7),
+          type: type || t.type, title: t.label, desc: t.desc, image: t.image,
+          duration: t.duration, time: type === "retreat" ? "" : "6:00 PM", date: "",
+          priceDollars: type === "retreat" ? 1295 : 40, color: "var(--bronze-deep)", waiver: type !== "retreat"
+        };
+        openEditor(e, -1);
+      });
+      g.appendChild(b);
+    });
+    body.appendChild(g);
+    // also allow a blank one
+    var blank = document.createElement("button"); blank.type = "button"; blank.className = "lt-eb-btn"; blank.style.marginTop = "0.8rem"; blank.textContent = "Start from blank";
+    blank.addEventListener("click", function () {
+      m.remove();
+      openEditor({ id: "ev-" + Math.random().toString(36).slice(2, 7), type: type || "class", title: "", desc: "", image: "assets/hero-meadow.jpg", duration: type === "retreat" ? "Weekend · 2 nights" : "2 hours", time: type === "retreat" ? "" : "6:00 PM", date: "", priceDollars: type === "retreat" ? 1295 : 40, color: "var(--bronze-deep)", waiver: type !== "retreat" }, -1);
+    });
+    body.appendChild(blank);
+    var m = modal("Add " + (type === "retreat" ? "a retreat" : "a class"), body);
+  }
+
+  function field(label, inner) { return '<label class="lt-ef"><span>' + esc(label) + '</span>' + inner + '</label>'; }
+
+  function openEditor(ev, index) {
+    var who = admin(); if (!who) return;
+    var e = JSON.parse(JSON.stringify(ev));
+    var body = document.createElement("div"); body.className = "lt-ev-form";
+    body.innerHTML =
+      field("Title", '<input type="text" data-f="title" value="' + esc(e.title) + '">') +
+      field("Type", '<select data-f="type"><option value="class"' + (e.type !== "retreat" ? " selected" : "") + '>Class</option><option value="retreat"' + (e.type === "retreat" ? " selected" : "") + '>Retreat</option></select>') +
+      '<div class="lt-ef-row">' +
+        field("Date", '<input type="date" data-f="date" value="' + esc(e.date) + '">') +
+        field("Time", '<input type="text" data-f="time" placeholder="6:00 PM" value="' + esc(e.time) + '">') +
+      '</div>' +
+      '<div class="lt-ef-row">' +
+        field("Duration", '<input type="text" data-f="duration" value="' + esc(e.duration) + '">') +
+        field("Price (USD)", '<input type="number" min="0" step="1" data-f="priceDollars" value="' + esc(e.priceDollars) + '">') +
+      '</div>' +
+      field("Location (optional)", '<input type="text" data-f="location" value="' + esc(e.location || "") + '">') +
+      field("Description", '<textarea data-f="desc" rows="4">' + esc(e.desc) + '</textarea>') +
+      field("Note (optional, italic line)", '<input type="text" data-f="note" value="' + esc(e.note || "") + '">') +
+      '<div class="lt-ef-row">' +
+        field("Accent colour", '<input type="text" data-f="color" placeholder="var(--bronze-deep) or #7a5f2c" value="' + esc(e.color || "") + '">') +
+        field("Require waiver", '<select data-f="waiver"><option value="yes"' + (e.waiver !== false ? " selected" : "") + '>Yes</option><option value="no"' + (e.waiver === false ? " selected" : "") + '>No</option></select>') +
+      '</div>' +
+      '<div class="lt-ef-img"><span>Image</span><img data-f-img src="' + esc(e.image || "assets/hero-meadow.jpg") + '" alt=""><button type="button" class="lt-eb-btn" data-upload>Upload / replace…</button></div>' +
+      '<div class="lt-ef-actions"><button type="button" class="lt-eb-btn lt-eb-primary" data-save>Save</button><span class="lt-ev-status" data-ef-status></span></div>';
+    var m = modal(index < 0 ? "Add listing" : "Edit listing", body);
+
+    // image upload
+    var fileInput = document.createElement("input"); fileInput.type = "file"; fileInput.accept = "image/*"; fileInput.style.display = "none"; body.appendChild(fileInput);
+    var efStatus = body.querySelector("[data-ef-status]");
+    body.querySelector("[data-upload]").addEventListener("click", function () { fileInput.value = ""; fileInput.click(); });
+    fileInput.addEventListener("change", function () {
+      var f = fileInput.files && fileInput.files[0]; if (!f) return;
+      if (f.size > 3 * 1024 * 1024) { efStatus.textContent = "Keep the image under 3 MB."; return; }
+      efStatus.textContent = "Uploading…";
+      var reader = new FileReader();
+      reader.onload = function () {
+        fetch("/api/admin-upload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ credential: who.token, dataUrl: reader.result }) })
+          .then(function (r) { return r.json(); }).then(function (d) {
+            if (d.ok && d.url) { e.image = d.url; body.querySelector("[data-f-img]").src = d.url; efStatus.textContent = "Image ready."; }
+            else { efStatus.textContent = d.error || "Upload failed."; }
+          }).catch(function () { efStatus.textContent = "Upload failed."; });
+      };
+      reader.readAsDataURL(f);
+    });
+
+    body.querySelector("[data-save]").addEventListener("click", function () {
+      function val(f) { var el = body.querySelector('[data-f="' + f + '"]'); return el ? el.value.trim() : ""; }
+      e.title = val("title") || "Untitled";
+      e.type = val("type") === "retreat" ? "retreat" : "class";
+      e.date = val("date");
+      e.time = val("time");
+      e.duration = val("duration");
+      e.priceDollars = parseFloat(val("priceDollars")) || 0;
+      e.location = val("location");
+      e.desc = val("desc");
+      e.note = val("note");
+      e.color = val("color") || "var(--bronze-deep)";
+      e.waiver = val("waiver") !== "no";
+      var events = eventsList().slice();
+      if (index < 0 || index >= events.length) events.push(e); else events[index] = e;
+      m.remove();
+      saveEvents(events, "Saved.");
+    });
+  }
+
+  function injectJsonLd(events) {
+    try {
+      var old = document.getElementById("lt-events-jsonld"); if (old) old.remove();
+      var up = sorted(events).filter(function (e) { return !isPast(e) && e.date; });
+      if (!up.length) return;
+      var data = up.map(function (e) {
+        var iso = e.date + "T" + to24h(e.time);
+        return {
+          "@context": "https://schema.org", "@type": "Event", name: e.title,
+          description: (e.desc || "").slice(0, 300), startDate: iso,
+          eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+          eventStatus: "https://schema.org/EventScheduled",
+          location: { "@type": "Place", name: e.location || "The Well — Integrative Medicine", address: { "@type": "PostalAddress", addressLocality: "Sacramento", addressRegion: "CA", addressCountry: "US" } },
+          organizer: { "@type": "Organization", name: "Living Terrain", url: "https://livingterrain.org" },
+          offers: { "@type": "Offer", price: String(e.priceDollars || 0), priceCurrency: "USD", availability: "https://schema.org/InStock", url: "https://livingterrain.org/classes.html#" + e.id }
+        };
+      });
+      var s = document.createElement("script"); s.type = "application/ld+json"; s.id = "lt-events-jsonld";
+      s.textContent = JSON.stringify(data);
+      document.body.appendChild(s);
+    } catch (e) {}
+  }
+  function to24h(t) {
+    if (!t) return "18:00:00-07:00";
+    var m = /(\d{1,2}):(\d{2})\s*(AM|PM)?/i.exec(t);
+    if (!m) return "18:00:00-07:00";
+    var h = parseInt(m[1], 10), min = m[2], ap = (m[3] || "").toUpperCase();
+    if (ap === "PM" && h < 12) h += 12; if (ap === "AM" && h === 12) h = 0;
+    return (h < 10 ? "0" + h : h) + ":" + min + ":00-07:00";
+  }
+
+  // If content already loaded (edit module fetched it), render now; otherwise the
+  // edit module calls window.LTEvents.apply(c) when it arrives.
+  if (window.LT_CONTENT) apply(window.LT_CONTENT);
+
+  // Graceful fallback: if content never arrives (API unreachable), don't leave the
+  // page stuck on "Loading…".
+  setTimeout(function () {
+    if (content) return;
+    var g = document.querySelector("[data-events-grid]");
+    if (g && /Loading/.test(g.textContent)) g.innerHTML = '<p class="cal-note center" style="grid-column:1/-1">The schedule couldn\'t load just now — please refresh, or email <a href="mailto:info@livingterrain.org">info@livingterrain.org</a>.</p>';
+    var u = document.querySelector("[data-events-upcoming]");
+    if (u && /Loading/.test(u.textContent)) u.innerHTML = '<p class="cal-note">Schedule unavailable right now — please refresh.</p>';
+  }, 7000);
 })();

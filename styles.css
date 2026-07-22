@@ -1144,14 +1144,111 @@ a { color: var(--bronze-deep); text-decoration-thickness: 1px; text-underline-of
 body.lt-editing { padding-bottom: 64px; }
 body.lt-editing [data-edit] { outline: 2px dashed var(--bronze); outline-offset: 2px; border-radius: 3px; cursor: pointer; }
 body.lt-editing [data-edit]:hover { background: rgba(154,118,59,0.18); }
-body.lt-editing .lt-tedit { outline: 2px dashed var(--sage); outline-offset: 2px; border-radius: 3px; cursor: text; }
-body.lt-editing .lt-tedit:hover { background: rgba(111,122,92,0.12); }
-body.lt-editing .lt-tedit[contenteditable="true"] { outline: 2px solid var(--bronze); background: #fff; }
+body.lt-editing .lt-tedit { outline: 2px dashed var(--bronze); outline-offset: 2px; border-radius: 3px; cursor: text; }
+body.lt-editing .lt-tedit:hover { background: rgba(154,118,59,0.14); box-shadow: 0 0 0 3px rgba(154,118,59,0.12); }
+/* Active editing surface: always a light box with readable dark ink, so text on
+   dark sections is never "whited out". No !important — the colour picker sets an
+   inline style that still wins over this default. */
+body.lt-editing .lt-tedit[contenteditable="true"] {
+  outline: 2px solid var(--bronze); background: #fffdf6;
+  color: #33342c; -webkit-text-fill-color: #33342c;
+  border-radius: 4px; padding: 0.05em 0.15em; box-shadow: 0 2px 14px rgba(0,0,0,0.18);
+}
+/* When the admin has picked a colour, honour it even inside the editing box. */
+body.lt-editing .lt-tedit[contenteditable="true"][style*="color"] { -webkit-text-fill-color: currentColor; }
 body.lt-editing .lt-iedit { outline: 2px dashed var(--bronze); outline-offset: 2px; cursor: pointer; }
 body.lt-editing .lt-iedit:hover { opacity: 0.85; box-shadow: 0 0 0 3px rgba(154,118,59,0.25); }
 .lt-eb-color { width: 34px; height: 30px; padding: 0; border: 1px solid rgba(244,238,224,0.5); border-radius: 6px; background: none; cursor: pointer; }
-.lt-eb-font { font: inherit; padding: 0.35rem 0.5rem; border-radius: 8px; border: 1px solid rgba(244,238,224,0.4); background: rgba(244,238,224,0.15); color: var(--parchment); }
+.lt-eb-font { font: inherit; padding: 0.35rem 0.5rem; border-radius: 8px; border: 1px solid rgba(244,238,224,0.4); background: rgba(244,238,224,0.15); color: var(--parchment); max-width: 12rem; }
 .lt-eb-font option { color: #111; }
+.lt-eb-hint { font-family: var(--body); font-style: italic; font-size: 0.78rem; color: #e6ddc9; }
+/* Editable icons */
+body.lt-editing .lt-icoedit { outline: 2px dashed var(--bronze); outline-offset: 3px; border-radius: 4px; cursor: pointer; }
+body.lt-editing .lt-icoedit:hover { background: rgba(154,118,59,0.16); box-shadow: 0 0 0 3px rgba(154,118,59,0.2); }
+/* Icon picker modal */
+.lt-ico-search { width: 100%; padding: 0.6rem 0.8rem; margin-bottom: 0.9rem; border: 1px solid rgba(122,95,44,0.3); border-radius: 8px; font: inherit; }
+.lt-ico-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 0.5rem; }
+.lt-ico-opt { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 0.6rem 0.3rem; background: #fff; border: 1px solid rgba(122,95,44,0.2); border-radius: 10px; cursor: pointer; color: var(--forest-deep); }
+.lt-ico-opt:hover { border-color: var(--bronze); background: #fffdf6; box-shadow: var(--shadow-lift); }
+.lt-ico-opt svg { width: 26px; height: 26px; }
+.lt-ico-opt span { font-family: var(--label); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); }
+.lt-h-change { display: block; margin-top: 0.2rem; font-size: 0.86rem; color: var(--ink); overflow-wrap: anywhere; }
+.lt-h-change b { color: var(--bronze-deep); font-weight: 600; }
+.lt-h-change .lt-h-page { display: inline-block; margin-right: 0.35rem; padding: 0.05rem 0.45rem; border-radius: 40px; background: var(--forest); color: var(--parchment); font-family: var(--label); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.lt-history-row .lt-h-sum { min-width: 0; }
+.lt-history-row > div:first-child { flex: 1; min-width: 0; }
+
+/* ---------- Dynamic classes / retreats / events ---------- */
+.lt-ev-type { display: inline-block; margin-left: 0.5rem; font-family: var(--label); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; background: var(--bronze); color: #fff; padding: 0.15rem 0.5rem; border-radius: 40px; vertical-align: middle; }
+.class-card.lt-ev-past { opacity: 0.62; }
+.lt-ev-sched { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.45rem; }
+.lt-ev-row { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; padding: 0.7rem 0.95rem; border: 1px solid rgba(122,95,44,0.16); border-left: 4px solid var(--c, var(--bronze-deep)); border-radius: 10px; background: #fff; }
+.lt-ev-row.lt-ev-past { opacity: 0.6; }
+.lt-ev-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--c, var(--bronze-deep)); flex: none; }
+.lt-ev-when { font-family: var(--label); font-size: 0.82rem; letter-spacing: 0.02em; color: var(--bronze-deep); text-decoration: none; font-weight: 600; min-width: 11rem; }
+.lt-ev-when:hover { text-decoration: underline; }
+.lt-ev-title { flex: 1; min-width: 12rem; color: var(--ink); }
+.lt-ev-go { margin-left: auto; font-family: var(--label); font-size: 0.78rem; background: var(--forest); color: var(--parchment); padding: 0.35rem 0.8rem; border-radius: 40px; text-decoration: none; white-space: nowrap; }
+.lt-ev-go:hover { background: var(--forest-deep); }
+.lt-ev-pastwrap { margin-top: 1rem; }
+.lt-ev-pastwrap summary { cursor: pointer; font-family: var(--label); font-size: 0.8rem; color: var(--ink-soft); }
+.lt-ev-pastwrap .lt-ev-sched { margin-top: 0.6rem; }
+.lt-ev-bar { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; background: var(--parchment); border: 1px dashed var(--bronze); border-radius: 12px; padding: 0.8rem 1rem; margin-bottom: 1.25rem; }
+.lt-ev-bar strong { font-family: var(--label); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.72rem; color: var(--bronze-deep); }
+.lt-ev-bar .lt-eb-btn { background: var(--forest); color: var(--parchment); border: 1px solid var(--forest); border-radius: 40px; padding: 0.45rem 1rem; cursor: pointer; font: inherit; font-size: 0.85rem; }
+.lt-ev-bar .lt-eb-primary { background: var(--bronze); border-color: var(--bronze); }
+.lt-ev-status { font-family: var(--body); font-style: italic; font-size: 0.85rem; color: var(--bronze-deep); }
+.lt-ev-ctl { display: flex; gap: 0.4rem; flex-wrap: wrap; padding: 0.7rem 0.9rem 0; margin-top: 0.5rem; border-top: 1px dashed rgba(122,95,44,0.25); }
+.lt-ev-ctl button { font-family: var(--label); font-size: 0.72rem; padding: 0.3rem 0.6rem; border-radius: 8px; border: 1px solid rgba(122,95,44,0.3); background: #fff; cursor: pointer; color: var(--forest-deep); }
+.lt-ev-ctl button:hover:not([disabled]) { background: var(--bronze); color: #fff; border-color: var(--bronze); }
+.lt-ev-ctl button[disabled] { opacity: 0.4; cursor: default; }
+.lt-ev-ctl .lt-ev-del { color: #a33; }
+.lt-ev-ctl .lt-ev-del:hover { background: #a33; color: #fff; border-color: #a33; }
+.lt-tpl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.7rem; }
+.lt-tpl-opt { display: flex; flex-direction: column; text-align: left; padding: 0; overflow: hidden; background: #fff; border: 1px solid rgba(122,95,44,0.2); border-radius: 12px; cursor: pointer; }
+.lt-tpl-opt:hover { border-color: var(--bronze); box-shadow: var(--shadow-lift); }
+.lt-tpl-opt img { width: 100%; height: 80px; object-fit: cover; }
+.lt-tpl-name { padding: 0.5rem 0.6rem 0; font-weight: 600; color: var(--forest-deep); font-size: 0.9rem; }
+.lt-tpl-type { padding: 0.1rem 0.6rem 0.5rem; font-family: var(--label); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); }
+.lt-ev-form { display: flex; flex-direction: column; gap: 0.7rem; }
+.lt-ef { display: flex; flex-direction: column; gap: 0.25rem; font-family: var(--label); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--bronze-deep); }
+.lt-ef input, .lt-ef select, .lt-ef textarea { font: inherit; text-transform: none; letter-spacing: normal; font-size: 1rem; padding: 0.5rem 0.6rem; border: 1px solid rgba(122,95,44,0.3); border-radius: 8px; color: var(--ink); background: #fff; }
+.lt-ef-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+.lt-ef-img { display: flex; flex-direction: column; gap: 0.4rem; font-family: var(--label); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--bronze-deep); }
+.lt-ef-img img { width: 100%; max-height: 140px; object-fit: cover; border-radius: 8px; }
+.lt-ef-actions { display: flex; align-items: center; gap: 0.8rem; margin-top: 0.4rem; }
+
+/* ---------- Liability waiver (class sign-up) ---------- */
+.waiver-box { background: #fbf8f0; border: 1px solid rgba(122,95,44,0.25); border-radius: 10px; padding: 0.9rem 1rem; }
+.waiver-details { margin-bottom: 0.7rem; }
+.waiver-details summary { cursor: pointer; font-family: var(--label); font-size: 0.85rem; color: var(--bronze-deep); font-weight: 600; }
+.waiver-text { margin-top: 0.6rem; max-height: 260px; overflow: auto; font-size: 0.9rem; color: var(--ink); padding-right: 0.5rem; }
+.waiver-text p { margin: 0 0 0.7rem; }
+.waiver-label { display: flex; gap: 0.55rem; align-items: flex-start; font-size: 0.92rem; color: var(--ink); cursor: pointer; }
+.waiver-label input { margin-top: 0.25rem; flex: none; }
+.waiver-ack { margin: 0.6rem 0 0; font-size: 0.85rem; color: var(--forest); font-style: italic; }
+
+/* ---------- About: "Before the clinic" bubbles + tabs ---------- */
+.path-tabs { justify-content: center; }
+.path-bubbles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.path-bubble { background: rgba(244,238,224,0.06); border: 1px solid rgba(244,238,224,0.16); border-radius: 18px; padding: 1.5rem 1.25rem; text-align: center; }
+.path-bubble .pb-ico { display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 50%; background: rgba(200,164,92,0.16); color: var(--bronze); margin-bottom: 0.9rem; }
+.path-bubble .pb-ico svg { width: 26px; height: 26px; }
+.path-bubble h3 { margin: 0 0 0.5rem; font-size: 1.15rem; }
+.path-bubble p { margin: 0; font-size: 0.92rem; color: var(--parchment-soft, #d9d2bf); }
+@media (max-width: 860px) { .path-bubbles { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .path-bubbles { grid-template-columns: 1fr; } }
+
+/* ---------- About: compact secondary bio (Samantha Maisel) ---------- */
+.cobio { display: flex; align-items: center; gap: 1.4rem; max-width: 720px; margin: 0 auto; padding: 1.25rem 1.5rem; background: #fff; border: 1px solid rgba(122,95,44,0.16); border-radius: 16px; box-shadow: var(--shadow-soft, 0 6px 24px rgba(37,48,31,0.06)); }
+.cobio-media { flex: none; }
+.cobio-mono { display: inline-flex; align-items: center; justify-content: center; width: 68px; height: 68px; border-radius: 50%; background: var(--forest); color: var(--parchment); font-family: var(--display, "Cormorant Garamond", serif); font-size: 1.6rem; letter-spacing: 0.04em; }
+.cobio-photo { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; display: block; }
+.cobio-body { flex: 1; }
+.cobio-body .eyebrow { margin: 0 0 0.2rem; }
+.cobio-body h3 { margin: 0 0 0.5rem; font-size: 1.3rem; }
+.cobio-body p { margin: 0; font-size: 0.95rem; color: var(--ink-soft); }
+@media (max-width: 560px) { .cobio { flex-direction: column; text-align: center; } }
 .lt-history { position: fixed; inset: 0; z-index: 600; background: rgba(37,48,31,0.5); display: flex; align-items: center; justify-content: center; padding: 1rem; }
 .lt-history-box { background: var(--parchment); border-radius: 12px; max-width: 560px; width: 100%; max-height: 80vh; overflow: auto; padding: 1.25rem 1.5rem; box-shadow: var(--shadow-lift); }
 .lt-history-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }

@@ -5,7 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sign Up — Living Terrain</title>
   <meta name="description" content="Reserve your place in a Living Terrain class or retreat. We'll send a confirmation to your email.">
-  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#25301f">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@400;500&display=swap" rel="stylesheet">
@@ -104,8 +109,17 @@
             </div>
 
             <!-- Class-only liability waiver (revealed by JS when type=class) -->
-            <div class="field" data-waiver hidden>
-              <label class="waiver-label"><input type="checkbox" data-waiver-input> I have read and agree to the <strong>liability waiver</strong>: I understand these classes are educational and not medical advice, that I should consult my own provider about my health, and that I take part at my own risk.</label>
+            <div class="field waiver-box" data-waiver hidden>
+              <details class="waiver-details">
+                <summary>Read the full liability waiver &amp; release</summary>
+                <div class="waiver-text">
+                  <p><strong>Assumption of risk & release of liability.</strong> The Living Terrain classes are <strong>educational</strong> in nature and are <strong>not medical advice, diagnosis, or treatment</strong>. Information shared is general and may not apply to your individual health situation. You should consult your own physician or qualified healthcare provider before making changes to your diet, supplements, medications, or health routine, and before using any herb, mushroom, or botanical.</p>
+                  <p>I understand that participation is <strong>voluntary and undertaken at my own risk</strong>. To the fullest extent permitted by law, I release and hold harmless Living Terrain, Serena Ling, PA-C, Samantha Maisel, MD, The Well — Integrative Medicine, and their instructors, hosts, and venues from any and all claims, liabilities, or injuries arising from my participation.</p>
+                  <p>I confirm I am responsible for disclosing relevant allergies or health conditions, that I will stop any activity that causes discomfort, and that I consent to take part on these terms.</p>
+                </div>
+              </details>
+              <label class="waiver-label"><input type="checkbox" data-waiver-input required> I have read and agree to the <strong>liability waiver &amp; release</strong> above. I understand these classes are educational and not medical advice, that I should consult my own provider about my health, and that I take part at my own risk.</label>
+              <p class="waiver-ack" data-waiver-ack hidden></p>
             </div>
 
             <!-- Fake, skippable paywall -->

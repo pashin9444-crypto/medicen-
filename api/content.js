@@ -3,6 +3,7 @@
 
 const { getContent, saveContent, getHistory, revertTo } = require("../lib/content.js");
 const { verifyGoogle, isAdmin } = require("../lib/auth.js");
+const eventbrite = require("../lib/eventbrite.js");
 
 module.exports = async function handler(req, res) {
   if (req.method === "GET") {
@@ -27,12 +28,20 @@ module.exports = async function handler(req, res) {
         return res.status(200).json({ ok: true, history: history });
       }
       if (body.action === "revert") {
-        if (user.role !== "superadmin") return res.status(403).json({ error: "Only a super-admin can revert changes." });
+        // Any admin (Serena included) can revert to a past version.
         const restored = await revertTo(body.ts, user.email);
         if (!restored) return res.status(404).json({ error: "That version couldn't be found." });
         return res.status(200).json({ ok: true, content: restored });
       }
-      const saved = await saveContent(body.content || {}, user.email);
+      let saved = await saveContent(body.content || {}, user.email);
+      // If events changed and Eventbrite is configured, mirror them there and persist
+      // any new Eventbrite ids. Best-effort — never blocks or fails the save.
+      if (body.content && body.content.events !== undefined && eventbrite.configured) {
+        try {
+          const synced = await eventbrite.syncEvents(saved.events);
+          if (synced && synced.changed) saved = await saveContent({ events: synced.events }, user.email, { skipHistory: true });
+        } catch (e) { console.error("eventbrite sync error", e); }
+      }
       return res.status(200).json({ ok: true, content: saved });
     } catch (e) {
       console.error("content save error", e);

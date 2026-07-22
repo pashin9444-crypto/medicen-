@@ -5,7 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>About — Living Terrain</title>
   <meta name="description" content="Living Terrain: rooted in nature, backed by science. The story and values behind the line, and the full bio of founder Serena Ling, PA-C.">
-  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#25301f">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@400;500&display=swap" rel="stylesheet">
@@ -60,15 +65,65 @@
       </div>
     </section>
 
+    <!-- CO-TEACHER (compact secondary bio — Samantha Maisel, MD) -->
+    <section class="section-tight">
+      <div class="container">
+        <div class="cobio reveal">
+          <div class="cobio-media">
+            <img class="cobio-photo" src="assets/samantha-maisel.jpg" alt="Samantha Maisel, MD" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'">
+            <span class="cobio-mono" style="display:none" aria-hidden="true">SM</span>
+          </div>
+          <div class="cobio-body">
+            <p class="eyebrow">Co-teacher</p>
+            <h3>Samantha Maisel, MD</h3>
+            <p>Samantha Maisel, MD is a physician who co-leads Living Terrain's retreats alongside Serena. She brings an integrative, whole-person approach — pairing modern medical training with traditional wellness practice — and helps guide the hands-on medicine-making and daily-routine work at each retreat.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- HER PATH / BEFORE THE CLINIC -->
     <section class="section bg-deep">
       <div class="container">
-        <div class="center reveal" style="margin-bottom:2.5rem">
+        <div class="center reveal" style="margin-bottom:2rem">
           <p class="eyebrow">Her path</p>
           <h2>Before the clinic</h2>
-          <p class="lede">Serena's route to medicine ran through writing and traditional art — earlier chapters that still shape how she bridges conventional care and traditional healing. <span style="font-style:italic">(Her earlier work was published under the name Serena Bartlett.)</span></p>
+          <p class="lede">Serena's route to medicine wound through the mountains, the lab, writing, and traditional art — earlier chapters that still shape how she bridges conventional care and traditional healing. <span style="font-style:italic">(Her earlier work was published under the name Serena Bartlett.)</span></p>
         </div>
-        <div class="grid grid-2">
+
+        <!-- Four word tabs (matching the values pill styling) -->
+        <ul class="values path-tabs reveal" style="margin-bottom:2rem">
+          <li>Ski Patrol</li>
+          <li>Clinical Research</li>
+          <li>Writing</li>
+          <li>Traditional Art</li>
+        </ul>
+
+        <!-- Exactly four bubbles -->
+        <div class="path-bubbles reveal">
+          <article class="path-bubble">
+            <span class="pb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l6-11 4 6 2-3 6 8z"/></svg></span>
+            <h3>Ski Patrol</h3>
+            <p>Time on ski patrol — emergency response and first aid in the mountains, where staying calm under pressure became second nature.</p>
+          </article>
+          <article class="path-bubble">
+            <span class="pb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M7 15h10"/></svg></span>
+            <h3>Clinical Research</h3>
+            <p>Years in clinical research — an evidence-first discipline she carries into every formulation and class.</p>
+          </article>
+          <article class="path-bubble">
+            <span class="pb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6C10 4.5 7 4 4 4.5v13C7 17 10 17.5 12 19M12 6c2-1.5 5-2 8-1.5v13c-3-.5-6 0-8 1.5M12 6v13"/></svg></span>
+            <h3>Author · GrassRoutes</h3>
+            <p>Founder of GrassRoutes and author of a series of urban eco travel guidebooks championing sustainable, local travel.</p>
+          </article>
+          <article class="path-bubble">
+            <span class="pb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.5 0 2-1 2-2 0-1.5 1-2 2-2h2a3 3 0 0 0 3-3c0-5-4-9-9-9z"/><circle cx="7.5" cy="12" r="1"/><circle cx="10" cy="8" r="1"/><circle cx="14.5" cy="8" r="1"/><circle cx="17" cy="12" r="1"/></svg></span>
+            <h3>Thangka Painting</h3>
+            <p>Apprenticed in Tibetan devotional (thangka) painting — a thread that ties directly to her study of Tibetan medicine.</p>
+          </article>
+        </div>
+
+        <div class="grid grid-2" style="margin-top:2.5rem">
           <article class="clip-card reveal">
             <div class="clip-img"><img src="assets/press-oakland-tribune.jpg" alt="Oakland Tribune 'Eco-travel' feature on GrassRoutes guidebooks, 2007" loading="lazy"></div>
             <span class="clip-tag">As featured in the Oakland Tribune · 2007</span>
